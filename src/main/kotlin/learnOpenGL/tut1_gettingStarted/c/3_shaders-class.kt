@@ -40,7 +40,7 @@ fun main(args: Array<String>) {
     }
 
     //  glfw window creation
-    val window = GlfwWindow(800, 600, "Shaders Interpolation")
+    val window = GlfwWindow(800, 600, "Shaders Class")
 
     with(window) {
 
@@ -57,8 +57,8 @@ fun main(args: Array<String>) {
     GL.createCapabilities()
 
 
-    // build and compile our shader zprogram
-    val ourShader = Shader("3.3.shader.vs", "3.3.shader.fs"); // you can name your shader files however you like
+    // build and compile our shader program
+    val ourShader = Shader("tut1_c3", "shader") // you can name your shader files however you like
 
 
     //  set up vertex data (and buffer(s)) and configure vertex attributes
@@ -91,8 +91,6 @@ fun main(args: Array<String>) {
         when it's not directly necessary.   */
     //glBindVertexArray()
 
-    // as we only have a single shader, we could also just activate our shader once beforehand if we want to
-    glUseProgram(shaderProgram)
 
     val start = System.nanoTime()
 
@@ -107,6 +105,8 @@ fun main(args: Array<String>) {
         glClear(GL_COLOR_BUFFER_BIT)
 
         // render the triangle
+        ourShader.use()
+        glBindVertexArray(vao)
         glDrawArrays(GL_TRIANGLES, 3)
 
         //  glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)

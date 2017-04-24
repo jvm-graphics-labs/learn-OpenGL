@@ -62,4 +62,7 @@ class Shader(root: String, vertexName: String, fragmentName: String) {
             }
         }
     }
+
+    /** activate the shader */
+    fun use() = glUseProgram(id)
 }
