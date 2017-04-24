@@ -1,5 +1,7 @@
 package learnOpenGL.common
 
+import uno.buffer.toByteBuffer
+import java.awt.image.BufferedImage
 import java.awt.image.DataBufferByte
 import java.io.File
 import javax.imageio.ImageIO
@@ -16,15 +18,12 @@ fun readFile(filePath: String): String {
     return file.readText()
 }
 
-fun readImageFile(filePath: String): ByteArray {
+fun readImage(filePath: String): BufferedImage {
 
     val url = GlfwWindow::javaClass.javaClass.classLoader.getResource(filePath)
     val file = File(url.toURI())
 
-    val bufferedImage = ImageIO.read(file)
-
-    // get DataBufferBytes from Raster
-    val raster = bufferedImage.raster
-
-    return (raster.dataBuffer as DataBufferByte).data
+    return ImageIO.read(file)
 }
+
+fun BufferedImage.toByteBuffer() = (raster.dataBuffer as DataBufferByte).data.toByteBuffer()

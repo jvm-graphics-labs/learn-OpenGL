@@ -6,17 +6,13 @@ package learnOpenGL.tut1_gettingStarted.d
 
 import glm.vec._2.Vec2
 import glm.vec._3.Vec3
-import learnOpenGL.common.GlfwWindow
-import learnOpenGL.common.Shader
-import learnOpenGL.common.glfw
-import learnOpenGL.common.readImageFile
+import learnOpenGL.common.*
 import org.lwjgl.glfw.GLFW.GLFW_KEY_ESCAPE
 import org.lwjgl.opengl.GL
 import org.lwjgl.opengl.GL11.*
 import org.lwjgl.opengl.GL15.*
 import org.lwjgl.opengl.GL20.*
-import org.lwjgl.opengl.GL30.glDeleteVertexArrays
-import org.lwjgl.opengl.GL30.glGenVertexArrays
+import org.lwjgl.opengl.GL30.*
 import uno.buffer.*
 import uno.glf.semantic
 import uno.gln.*
@@ -55,7 +51,7 @@ fun main(args: Array<String>) {
 
 
     // build and compile our shader program
-    val ourShader = Shader("tut1_c3", "texture") // you can name your shader files however you like
+    val ourShader = Shader("tut1_d1", "texture") // you can name your shader files however you like
 
 
     //  set up vertex data (and buffer(s)) and configure vertex attributes
@@ -108,16 +104,11 @@ fun main(args: Array<String>) {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
 
     // load image, create texture and generate mipmaps
-    val data = readImageFile("resources/textures/container.jpg").toByteBuffer()
+    val image = readImage("textures/container.jpg")
+    val data = image.toByteBuffer()
 
-    glTexImage2D(GL_TEXTURE_2D, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data)
-        glGenerateMipmap(GL_TEXTURE_2D)
-    }
-    else
-    {
-        std::cout << "Failed to load texture" << std::endl
-    }
-    stbi_image_free(data)
+//    glTexImage2D(GL_TEXTURE_2D, GL_RGB, image.width, image.height, GL_RGB, GL_UNSIGNED_BYTE, data)
+    glGenerateMipmap(GL_TEXTURE_2D)
 
     /*  You can unbind the VAO afterwards so other VAO calls won't accidentally modify this VAO, but this rarely happens.
         Modifying other VAOs requires a call to glBindVertexArray anyways so we generally don't unbind VAOs (nor VBOs)
