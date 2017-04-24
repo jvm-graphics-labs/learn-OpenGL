@@ -1,11 +1,12 @@
 package learnOpenGL.tut1_gettingStarted.c
 
 /**
- * Created by GBarbieri on 24.04.2017.
+ * Created by elect on 24/04/17.
  */
 
 import glm.vec._3.Vec3
 import learnOpenGL.common.GlfwWindow
+import learnOpenGL.common.Shader
 import learnOpenGL.common.glfw
 import org.lwjgl.glfw.GLFW.GLFW_KEY_ESCAPE
 import org.lwjgl.opengl.GL
@@ -56,37 +57,9 @@ fun main(args: Array<String>) {
     GL.createCapabilities()
 
 
-    //  build and compile our shader program
-    //  vertex shader
-    val vertexShader = glCreateShader(GL_VERTEX_SHADER)
-    glShaderSource(vertexShader, vertexShaderSource)
-    glCompileShader(vertexShader)
-    //  heck for shader compile errors
-    if (glGetShaderi(vertexShader, GL_COMPILE_STATUS) == GL_FALSE) {
-        val infoLog = glGetShaderInfoLog(vertexShader)
-        System.err.println("ERROR::SHADER::VERTEX::COMPILATION_FAILED\n$infoLog")
-    }
-    //  fragment shader
-    val fragmentShader = glCreateShader(GL_FRAGMENT_SHADER)
-    glShaderSource(fragmentShader, fragmentShaderSource)
-    glCompileShader(fragmentShader)
-    //  check for shader compile errors
-    if (glGetShaderi(fragmentShader, GL_COMPILE_STATUS) == GL_FALSE) {
-        val infoLog = glGetShaderInfoLog(fragmentShader)
-        System.err.print("ERROR::SHADER::FRAGMENT::COMPILATION_FAILED\n$infoLog")
-    }
-    //  link shaders
-    val shaderProgram = glCreateProgram()
-    glAttachShader(shaderProgram, vertexShader)
-    glAttachShader(shaderProgram, fragmentShader)
-    glLinkProgram(shaderProgram)
-    //  check for linking errors
-    if (glGetProgrami(shaderProgram, GL_LINK_STATUS) == GL_FALSE) {
-        val infoLog = glGetProgramInfoLog(shaderProgram)
-        System.err.print("ERROR::SHADER::PROGRAM::LINKING_FAILED\n$infoLog")
-    }
-    glDeleteShader(vertexShader)
-    glDeleteShader(fragmentShader)
+    // build and compile our shader zprogram
+    val ourShader = Shader("3.3.shader.vs", "3.3.shader.fs"); // you can name your shader files however you like
+
 
     //  set up vertex data (and buffer(s)) and configure vertex attributes
     val vertices = floatBufferOf(
@@ -151,38 +124,6 @@ fun main(args: Array<String>) {
     //  glfw: terminate, clearing all previously allocated GLFW resources.
     glfw.terminate()
 }
-
-private val vertexShaderSource = """
-                            #version 330 core
-
-                            #define POSITION    0
-                            #define COLOR       3
-
-                            layout (location = POSITION) in vec3 aPos;
-                            layout (location = COLOR) in vec3 aColor;
-
-                            out vec3 ourColor;
-
-                            void main()
-                            {
-                                gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);
-                                ourColor = aColor;
-                            }
-                        """
-private val fragmentShaderSource = """
-                                #version 330 core
-
-                                #define FRAG_COLOR    0
-
-                                layout (location = FRAG_COLOR) out vec4 fragColor;
-
-                                in vec3 ourColor;
-
-                                void main()
-                                {
-                                    fragColor = vec4(ourColor, 1.0f);
-                                }
-                            """
 
 /** process all input: query GLFW whether relevant keys are pressed/released this frame and react accordingly   */
 private fun processInput(window: GlfwWindow) {
