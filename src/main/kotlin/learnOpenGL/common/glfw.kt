@@ -20,11 +20,12 @@ object glfw {
 
     fun windowHint(block: windowHint.() -> Unit) = windowHint.block()
 
-    val primaryMonitor
-        get() = glfwGetPrimaryMonitor()
+    val primaryMonitor get() = glfwGetPrimaryMonitor()
 
-    val videoMode: GLFWVidMode
-        get() = glfwGetVideoMode(primaryMonitor)
+    val videoMode: GLFWVidMode get() = glfwGetVideoMode(primaryMonitor)
+
+    var start = System.nanoTime()
+    val time get() = (System.nanoTime() - start) / 1e9f
 
     fun videoMode(monitor: Long): GLFWVidMode = glfwGetVideoMode(monitor)
 
