@@ -47,7 +47,7 @@ private class HelloWindowClear {
 
             show()   // Make the window visible
 
-            framebufferSizeCallback = Companion::framebuffer_size_callback
+            framebufferSizeCallback = this@HelloWindowClear::framebuffer_size_callback
         }
 
         /* This line is critical for LWJGL's interoperation with GLFW's OpenGL context, or any context that is managed
@@ -84,19 +84,16 @@ private class HelloWindowClear {
     /** process all input: query GLFW whether relevant keys are pressed/released this frame and react accordingly   */
     private fun processInput(window: GlfwWindow) {
 
-        if (window.key(GLFW_KEY_ESCAPE).pressed)
+        if (window.pressed(GLFW_KEY_ESCAPE))
             window.shouldClose = true
     }
 
-    companion object {
+    /** glfw: whenever the window size changed (by OS or user resize) this callback function executes   */
+    private fun framebuffer_size_callback(width: Int, height: Int) {
 
-        /** glfw: whenever the window size changed (by OS or user resize) this callback function executes   */
-        private fun framebuffer_size_callback(width: Int, height: Int) {
-
-            /*  make sure the viewport matches the new window dimensions; note that width and height will be
-                significantly larger than specified on retina displays.     */
-            glViewport(0, 0, width, height)
-        }
+        /*  make sure the viewport matches the new window dimensions; note that width and height will be
+            significantly larger than specified on retina displays.     */
+        glViewport(0, 0, width, height)
     }
 }
 

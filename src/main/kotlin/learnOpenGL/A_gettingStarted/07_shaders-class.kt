@@ -4,7 +4,7 @@ package learnOpenGL.A_gettingStarted
  * Created by elect on 24/04/17.
  */
 
-import glm.vec._3.Vec3
+import glm.vec3.Vec3
 import learnOpenGL.common.GlfwWindow
 import learnOpenGL.common.Shader
 import learnOpenGL.common.glfw
@@ -73,7 +73,7 @@ private class ShadersClass {
 
             show()   // Make the window visible
 
-            framebufferSizeCallback = Companion::framebuffer_size_callback
+            framebufferSizeCallback = this@ShadersClass::framebuffer_size_callback
         }
 
         /* This line is critical for LWJGL's interoperation with GLFW's OpenGL context, or any context that is managed
@@ -83,7 +83,7 @@ private class ShadersClass {
 
 
         // build and compile our shader program
-        ourShader = Shader("shaders/tutA_07", "shader") // you can name your shader files however you like
+        ourShader = Shader("shaders/A_07", "shader") // you can name your shader files however you like
 
 
         //  set up vertex data (and buffer(s)) and configure vertex attributes
@@ -96,10 +96,10 @@ private class ShadersClass {
         glBufferData(GL_ARRAY_BUFFER, vertices, GL_STATIC_DRAW)
 
         //  position attribute
-        glVertexAttribPointer(semantic.attr.POSITION, Vec3.Companion.length, GL_FLOAT, false, 2 * Vec3.Companion.SIZE, 0)
+        glVertexAttribPointer(semantic.attr.POSITION, Vec3.length, GL_FLOAT, false, 2 * Vec3.size, 0)
         glEnableVertexAttribArray(semantic.attr.POSITION)
         //  color attribute
-        glVertexAttribPointer(semantic.attr.COLOR, Vec3.Companion.length, GL_FLOAT, false, 2 * Vec3.Companion.SIZE, Vec3.Companion.SIZE)
+        glVertexAttribPointer(semantic.attr.COLOR, Vec3.length, GL_FLOAT, false, 2 * Vec3.size, Vec3.size)
         glEnableVertexAttribArray(semantic.attr.COLOR)
 
         /*  You can unbind the VAO afterwards so other VAO calls won't accidentally modify this VAO, but this rarely happens.
@@ -147,18 +147,15 @@ private class ShadersClass {
     /** process all input: query GLFW whether relevant keys are pressed/released this frame and react accordingly   */
     fun processInput(window: GlfwWindow) {
 
-        if (window.key(GLFW_KEY_ESCAPE).pressed)
+        if (window.pressed(GLFW_KEY_ESCAPE))
             window.shouldClose = true
     }
 
-    companion object {
+    /** glfw: whenever the window size changed (by OS or user resize) this callback function executes   */
+    fun framebuffer_size_callback(width: Int, height: Int) {
 
-        /** glfw: whenever the window size changed (by OS or user resize) this callback function executes   */
-        fun framebuffer_size_callback(width: Int, height: Int) {
-
-            /*  make sure the viewport matches the new window dimensions; note that width and height will be significantly
-                larger than specified on retina displays.     */
-            glViewport(0, 0, width, height)
-        }
+        /*  make sure the viewport matches the new window dimensions; note that width and height will be significantly
+            larger than specified on retina displays.     */
+        glViewport(0, 0, width, height)
     }
 }

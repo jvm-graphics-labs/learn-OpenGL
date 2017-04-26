@@ -4,8 +4,8 @@ package learnOpenGL.A_gettingStarted
  * Created by elect on 24/04/17.
  */
 
-import glm.vec._2.Vec2
-import glm.vec._3.Vec3
+import glm.vec2.Vec2
+import glm.vec3.Vec3
 import learnOpenGL.common.*
 import org.lwjgl.glfw.GLFW.GLFW_KEY_ESCAPE
 import org.lwjgl.opengl.GL11.*
@@ -82,7 +82,7 @@ private class Textures {
 
             show()   // Make the window visible
 
-            framebufferSizeCallback = learnOpenGL.A_gettingStarted.Textures.Companion::framebuffer_size_callback
+            framebufferSizeCallback = this@Textures::framebuffer_size_callback
         }
 
         /* This line is critical for LWJGL's interoperation with GLFW's OpenGL context, or any context that is managed
@@ -92,7 +92,7 @@ private class Textures {
 
 
         // build and compile our shader program
-        ourShader = learnOpenGL.common.Shader("shaders/tutA_08", "texture") // you can name your shader files however you like
+        ourShader = learnOpenGL.common.Shader("shaders/A_08", "texture") // you can name your shader files however you like
 
 
         //  set up vertex data (and buffer(s)) and configure vertex attributes
@@ -109,10 +109,10 @@ private class Textures {
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices, GL_STATIC_DRAW)
 
         //  position attribute
-        glVertexAttribPointer(semantic.attr.POSITION, Vec3.length, GL_FLOAT, false, Vec3.SIZE + Vec2.SIZE, 0)
+        glVertexAttribPointer(semantic.attr.POSITION, Vec3.length, GL_FLOAT, false, Vec3.size + Vec2.size, 0)
         glEnableVertexAttribArray(uno.glf.semantic.attr.POSITION)
         // texture coord attribute
-        glVertexAttribPointer(semantic.attr.TEXCOORD, Vec2.length, GL_FLOAT, false, Vec3.SIZE + Vec2.SIZE, Vec3.SIZE)
+        glVertexAttribPointer(semantic.attr.TEXCOORD, Vec2.length, GL_FLOAT, false, Vec3.size + Vec2.size, Vec3.size)
         glEnableVertexAttribArray(uno.glf.semantic.attr.TEXCOORD)
 
 
@@ -184,18 +184,15 @@ private class Textures {
     /** process all input: query GLFW whether relevant keys are pressed/released this frame and react accordingly   */
     fun processInput(window: learnOpenGL.common.GlfwWindow) {
 
-        if (window.key(GLFW_KEY_ESCAPE).pressed)
+        if (window.pressed(GLFW_KEY_ESCAPE))
             window.shouldClose = true
     }
 
-    companion object {
+    /** glfw: whenever the window size changed (by OS or user resize) this callback function executes   */
+    fun framebuffer_size_callback(width: Int, height: Int) {
 
-        /** glfw: whenever the window size changed (by OS or user resize) this callback function executes   */
-        fun framebuffer_size_callback(width: Int, height: Int) {
-
-            /*  make sure the viewport matches the new window dimensions; note that width and height will be significantly
-                larger than specified on retina displays.     */
-            glViewport(0, 0, width, height)
-        }
+        /*  make sure the viewport matches the new window dimensions; note that width and height will be significantly
+            larger than specified on retina displays.     */
+        glViewport(0, 0, width, height)
     }
 }

@@ -1,15 +1,17 @@
 package learnOpenGL.A_gettingStarted
 
 /**
- * Created by GBarbieri on 25.04.2017.
+ * Created by elect on 26/04/17.
  */
 
-
+import glm.*
+import glm.glm.cos
+import glm.glm.sin
 import glm.mat4x4.Mat4
 import glm.vec2.Vec2
 import glm.vec3.Vec3
 import learnOpenGL.common.*
-import org.lwjgl.glfw.GLFW.GLFW_KEY_ESCAPE
+import org.lwjgl.glfw.GLFW.*
 import org.lwjgl.opengl.EXTABGR
 import org.lwjgl.opengl.GL
 import org.lwjgl.opengl.GL11.*
@@ -17,24 +19,28 @@ import org.lwjgl.opengl.GL12.GL_BGR
 import org.lwjgl.opengl.GL13.GL_TEXTURE0
 import org.lwjgl.opengl.GL13.glActiveTexture
 import org.lwjgl.opengl.GL15.*
+import org.lwjgl.opengl.GL20.glEnableVertexAttribArray
 import org.lwjgl.opengl.GL30.*
-import uno.buffer.*
+import uno.buffer.destroy
+import uno.buffer.destroyBuffers
+import uno.buffer.floatBufferOf
+import uno.buffer.intBufferBig
 import uno.glf.semantic
 import uno.gln.*
-import glm.glm
-import glm.rad
-import org.lwjgl.opengl.GL20.*
+import glm.vec3.operators.times
+import learnOpenGL.common.GlfwWindow.Cursor.Disabled
+
 
 fun main(args: Array<String>) {
 
-    with(CoordinateSystemsDepth()) {
+    with(CameraMouseZoom()) {
 
         run()
         end()
     }
 }
 
-private class CoordinateSystemsDepth {
+private class CameraMouseZoom {
 
     val window: GlfwWindow
 
@@ -86,6 +92,19 @@ private class CoordinateSystemsDepth {
             -0.5f, +0.5f, +0.5f, 0.0f, 0.0f,
             -0.5f, +0.5f, -0.5f, 0.0f, 1.0f)
 
+    // world space positions of our cubes
+    val cubePositions = arrayOf(
+            Vec3(0.0f, 0.0f, 0.0f),
+            Vec3(2.0f, 5.0f, -15.0f),
+            Vec3(-1.5f, -2.2f, -2.5f),
+            Vec3(-3.8f, -2.0f, -12.3f),
+            Vec3(2.4f, -0.4f, -3.5f),
+            Vec3(-1.7f, 3.0f, -7.5f),
+            Vec3(1.3f, -2.0f, -2.5f),
+            Vec3(1.5f, 2.0f, -2.5f),
+            Vec3(1.5f, 0.2f, -1.5f),
+            Vec3(-1.3f, 1.0f, -1.5f))
+
     object Texture {
         val A = 0
         val B = 1
@@ -96,6 +115,23 @@ private class CoordinateSystemsDepth {
 
     val semantic.sampler.DIFFUSE_A get() = 0
     val semantic.sampler.DIFFUSE_B get() = 1
+
+    // camera
+    var cameraPos = Vec3(0.0f, 0.0f, 3.0f)
+    var cameraFront = Vec3(0.0f, 0.0f, -1.0f)
+    val cameraUp = Vec3(0.0f, 1.0f, 0.0f)
+
+    var firstMouse = true
+    /*  yaw is initialized to -90.0 degrees since a yaw of 0.0 results in a direction vector pointing to the right so we
+        initially rotate a bit to the left.     */
+    var yaw = -90.0f
+    var pitch = 0.0f
+    var lastX = 800.0f / 2.0
+    var lastY = 600.0 / 2
+    var fov = 45.0f
+
+    var deltaTime = 0.0f    // time between current frame and last frame
+    var lastFrame = 0.0f
 
     init {
 
@@ -113,7 +149,7 @@ private class CoordinateSystemsDepth {
         }
 
         //  glfw window creation
-        window = GlfwWindow(800, 600, "Coordinate Systems Depth")
+        window = GlfwWindow(800, 600, "Camera Mouse Zoom")
 
         with(window) {
 
@@ -121,7 +157,12 @@ private class CoordinateSystemsDepth {
 
             show()   // Make the window visible
 
-            framebufferSizeCallback = this@CoordinateSystemsDepth::framebuffer_size_callback
+            framebufferSizeCallback = this@CameraMouseZoom::framebuffer_size_callback
+            cursorPosCallback = this@CameraMouseZoom::mouse_callback
+            scrollCallback = this@CameraMouseZoom::scroll_callback
+
+            // tell GLFW to capture our mouse
+            cursor = Disabled
         }
 
         /* This line is critical for LWJGL's interoperation with GLFW's OpenGL context, or any context that is managed
@@ -135,7 +176,7 @@ private class CoordinateSystemsDepth {
 
 
         // build and compile our shader program, you can name your shader files however you like
-        ourShader = shaderOf(this::class, "shaders/A_12", "coordinate-systems")
+        ourShader = shaderOf(this::class, "shaders/A_15", "camera")
 
 
         //  set up vertex data (and buffer(s)) and configure vertex attributes
@@ -217,6 +258,13 @@ private class CoordinateSystemsDepth {
         //  render loop
         while (window.shouldNotClose) {
 
+            // per-frame time logic
+            // --------------------
+            val currentFrame = glfw.time
+            deltaTime = currentFrame - lastFrame
+            lastFrame = currentFrame
+
+
             //  input
             processInput(window)
 
@@ -232,24 +280,26 @@ private class CoordinateSystemsDepth {
 
             usingProgram(ourShader) {
 
-                //  create transformations
-                val model = glm.rotate(Mat4(), glfw.time, 0.5f, 1.0f, 0.0f)
-                val view = glm.translate(Mat4(), 0.0f, 0.0f, -3.0f)
-                val projection = glm.perspective(45.0f.rad, 800.0f / 600.0f, 0.1f, 100.0f)
-                //  retrieve the matrix uniform locations
-                val modelLoc = glGetUniformLocation(ourShader, "model")
-                val viewLoc = glGetUniformLocation(ourShader, "view")
-                //  pass them to the shaders (3 different ways)
-                glUniformMatrix4fv(modelLoc, false, model to mat4Buffer)
-                glUniformMatrix4f(viewLoc, view)
-                /*  note: currently we set the projection matrix each frame, but since the projection matrix rarely
-                    changes it's often best practice to set it outside the main loop only once. Best place is the
-                    framebuffer size callback   */
+                // pass projection matrix to shader (note that in this case it could change every frame)
+                val projection = glm.perspective(fov.rad, 800.0f / 600.0f, 0.1f, 100.0f)
                 "projection".location.mat4 = projection
 
-                //  render container
+                // camera/view transformation
+                val view = glm.lookAt(cameraPos, cameraPos + cameraFront, cameraUp)
+                "view".location.mat4 = view
+
+                // render boxes
                 glBindVertexArray(vao)
-                glDrawArrays(GL_TRIANGLES, 36)
+                cubePositions.forEachIndexed { i, vec3 ->
+
+                    // calculate the model matrix for each object and pass it to shader before drawing
+                    val model = Mat4() translate_ vec3
+                    val angle = 20.0f * i
+                    model.rotate_(angle.rad, 1.0f, 0.3f, 0.5f)
+                    "model".location.mat4 = model
+
+                    glDrawArrays(GL_TRIANGLES, 36)
+                }
             }
 
             //  glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
@@ -277,6 +327,18 @@ private class CoordinateSystemsDepth {
 
         if (window.pressed(GLFW_KEY_ESCAPE))
             window.shouldClose = true
+
+        val cameraSpeed = 2.5 * deltaTime
+        if (window.pressed(GLFW_KEY_W))
+            cameraPos += cameraSpeed * cameraFront
+        if (window.pressed(GLFW_KEY_S))
+            cameraPos -= cameraSpeed * cameraFront
+        if (window.pressed(GLFW_KEY_A))
+            cameraPos -= glm.normalize(glm.cross(cameraFront, cameraUp)) * cameraSpeed  // glm classic
+        if (window.pressed(GLFW_KEY_D))
+            cameraPos += (cameraFront cross cameraUp).normalize_() * cameraSpeed    // glm enhanced
+
+        // TODO up/down?
     }
 
     /** glfw: whenever the window size changed (by OS or user resize) this callback function executes   */
@@ -285,5 +347,46 @@ private class CoordinateSystemsDepth {
         /*  make sure the viewport matches the new window dimensions; note that width and height will be significantly
             larger than specified on retina displays.     */
         glViewport(0, 0, width, height)
+    }
+
+    /** glfw: whenever the mouse moves, this callback is called */
+    fun mouse_callback(xpos: Double, ypos: Double) {
+
+        if (firstMouse) {
+            lastX = xpos
+            lastY = ypos
+            firstMouse = false
+        }
+
+        var xoffset = xpos - lastX
+        var yoffset = lastY - ypos // reversed since y-coordinates go from bottom to top
+        lastX = xpos
+        lastY = ypos
+
+        val sensitivity = 0.1f // change this value to your liking
+        xoffset *= sensitivity
+        yoffset *= sensitivity
+
+        yaw += xoffset.f
+        pitch += yoffset.f
+
+        // make sure that when pitch is out of bounds, screen doesn't get flipped
+        if (pitch > 89.0f)
+            pitch = 89.0f
+        if (pitch < -89.0f)
+            pitch = -89.0f
+
+        val front = Vec3(
+                x = cos(glm.radians(yaw)) * cos(glm.radians(pitch)), // classic glm
+                y = sin(pitch.rad), // one glm alternative
+                z = yaw.rad.sin * pitch.rad.cos)                        // another glm alternative
+        cameraFront = front.normalize_()
+    }
+
+    /** glfw: whenever the mouse scroll wheel scrolls, this callback is called  */
+    fun scroll_callback(xOffset: Double, yOffset: Double) {
+        if (fov in 1.0f..45.0f)
+            fov -= yOffset.f
+        fov = glm.clamp(fov, 1.0f, 45.0f)
     }
 }

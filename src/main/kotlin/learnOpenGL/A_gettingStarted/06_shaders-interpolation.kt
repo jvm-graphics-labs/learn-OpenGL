@@ -4,24 +4,14 @@ package learnOpenGL.A_gettingStarted
  * Created by GBarbieri on 24.04.2017.
  */
 
-import glm.vec._3.Vec3
-import learnOpenGL.common.GlfwWindow
-import learnOpenGL.common.glfw
+import glm.vec3.Vec3
 import org.lwjgl.glfw.GLFW.GLFW_KEY_ESCAPE
-import org.lwjgl.opengl.GL
 import org.lwjgl.opengl.GL11.*
 import org.lwjgl.opengl.GL15.*
 import org.lwjgl.opengl.GL20.*
 import org.lwjgl.opengl.GL30.glDeleteVertexArrays
 import org.lwjgl.opengl.GL30.glGenVertexArrays
-import uno.buffer.destroyBuffers
-import uno.buffer.floatBufferOf
-import uno.buffer.intBufferBig
 import uno.glf.semantic
-import uno.gln.glBindBuffer
-import uno.gln.glBindVertexArray
-import uno.gln.glDrawArrays
-import uno.gln.glVertexAttribPointer
 
 fun main(args: Array<String>) {
 
@@ -105,7 +95,7 @@ private class ShadersInterpolation {
 
             show()   // Make the window visible
 
-            framebufferSizeCallback = learnOpenGL.A_gettingStarted.ShadersInterpolation.Companion::framebuffer_size_callback
+            framebufferSizeCallback = this@ShadersInterpolation::framebuffer_size_callback
         }
 
         /* This line is critical for LWJGL's interoperation with GLFW's OpenGL context, or any context that is managed
@@ -156,10 +146,10 @@ private class ShadersInterpolation {
         glBufferData(GL_ARRAY_BUFFER, vertices, GL_STATIC_DRAW)
 
         //  position attribute
-        uno.gln.glVertexAttribPointer(semantic.attr.POSITION, Vec3.length, GL_FLOAT, false, 2 * Vec3.SIZE, 0)
+        uno.gln.glVertexAttribPointer(semantic.attr.POSITION, Vec3.length, GL_FLOAT, false, 2 * Vec3.size, 0)
         glEnableVertexAttribArray(uno.glf.semantic.attr.POSITION)
         //  color attribute
-        uno.gln.glVertexAttribPointer(semantic.attr.COLOR, Vec3.length, GL_FLOAT, false, 2 * Vec3.SIZE, Vec3.SIZE)
+        uno.gln.glVertexAttribPointer(semantic.attr.COLOR, Vec3.length, GL_FLOAT, false, 2 * Vec3.size, Vec3.size)
         glEnableVertexAttribArray(uno.glf.semantic.attr.COLOR)
 
         /*  You can unbind the VAO afterwards so other VAO calls won't accidentally modify this VAO, but this rarely happens.
@@ -208,18 +198,15 @@ private class ShadersInterpolation {
     /** process all input: query GLFW whether relevant keys are pressed/released this frame and react accordingly   */
     fun processInput(window: learnOpenGL.common.GlfwWindow) {
 
-        if (window.key(GLFW_KEY_ESCAPE).pressed)
+        if (window.pressed(GLFW_KEY_ESCAPE))
             window.shouldClose = true
     }
 
-    companion object {
+    /** glfw: whenever the window size changed (by OS or user resize) this callback function executes   */
+    fun framebuffer_size_callback(width: Int, height: Int) {
 
-        /** glfw: whenever the window size changed (by OS or user resize) this callback function executes   */
-        fun framebuffer_size_callback(width: Int, height: Int) {
-
-            /*  make sure the viewport matches the new window dimensions; note that width and height will be significantly
-                larger than specified on retina displays.     */
-            glViewport(0, 0, width, height)
-        }
+        /*  make sure the viewport matches the new window dimensions; note that width and height will be significantly
+            larger than specified on retina displays.     */
+        glViewport(0, 0, width, height)
     }
 }

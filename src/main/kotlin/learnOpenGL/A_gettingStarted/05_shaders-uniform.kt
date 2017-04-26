@@ -4,8 +4,8 @@ package learnOpenGL.A_gettingStarted
  * Created by GBarbieri on 24.04.2017.
  */
 
-import glm.Glm.sin
-import glm.vec._3.Vec3
+import glm.glm.sin
+import glm.vec3.Vec3
 import learnOpenGL.common.GlfwWindow
 import learnOpenGL.common.glfw
 import org.lwjgl.glfw.GLFW.GLFW_KEY_ESCAPE
@@ -100,7 +100,7 @@ private class ShadersUniform {
 
             show()   // Make the window visible
 
-            framebufferSizeCallback = Companion::framebuffer_size_callback
+            framebufferSizeCallback = this@ShadersUniform::framebuffer_size_callback
         }
 
         /* This line is critical for LWJGL's interoperation with GLFW's OpenGL context, or any context that is managed
@@ -150,7 +150,7 @@ private class ShadersUniform {
         glBindBuffer(GL_ARRAY_BUFFER, vbo)
         glBufferData(GL_ARRAY_BUFFER, vertices, GL_STATIC_DRAW)
 
-        glVertexAttribPointer(semantic.attr.POSITION, Vec3.length, GL_FLOAT, false, Vec3.SIZE, 0)
+        glVertexAttribPointer(semantic.attr.POSITION, Vec3.length, GL_FLOAT, false, Vec3.size, 0)
         glEnableVertexAttribArray(semantic.attr.POSITION)
 
         /*  You can unbind the VAO afterwards so other VAO calls won't accidentally modify this VAO, but this rarely happens.
@@ -209,18 +209,15 @@ private class ShadersUniform {
     /** process all input: query GLFW whether relevant keys are pressed/released this frame and react accordingly   */
     fun processInput(window: GlfwWindow) {
 
-        if (window.key(GLFW_KEY_ESCAPE).pressed)
+        if (window.pressed(GLFW_KEY_ESCAPE))
             window.shouldClose = true
     }
 
-    companion object {
+    /** glfw: whenever the window size changed (by OS or user resize) this callback function executes   */
+    fun framebuffer_size_callback(width: Int, height: Int) {
 
-        /** glfw: whenever the window size changed (by OS or user resize) this callback function executes   */
-        fun framebuffer_size_callback(width: Int, height: Int) {
-
-            /*  make sure the viewport matches the new window dimensions; note that width and height will be significantly
-                larger than specified on retina displays.     */
-            glViewport(0, 0, width, height)
-        }
+        /*  make sure the viewport matches the new window dimensions; note that width and height will be significantly
+            larger than specified on retina displays.     */
+        glViewport(0, 0, width, height)
     }
 }

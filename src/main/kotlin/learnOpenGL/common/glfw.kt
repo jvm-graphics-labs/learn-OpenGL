@@ -1,6 +1,6 @@
 package learnOpenGL.common
 
-import glm.vec._2.Vec2i
+import glm.vec2.Vec2i
 import org.lwjgl.glfw.GLFW.*
 import org.lwjgl.glfw.GLFWErrorCallback
 import org.lwjgl.glfw.GLFWVidMode

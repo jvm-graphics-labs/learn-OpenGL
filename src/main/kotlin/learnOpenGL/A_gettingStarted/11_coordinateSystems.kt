@@ -4,9 +4,9 @@ package learnOpenGL.A_gettingStarted
  * Created by GBarbieri on 25.04.2017.
  */
 
-import glm.mat.Mat4
-import glm.vec._2.Vec2
-import glm.vec._3.Vec3
+import glm.mat4x4.Mat4
+import glm.vec2.Vec2
+import glm.vec3.Vec3
 import learnOpenGL.common.*
 import org.lwjgl.glfw.GLFW.GLFW_KEY_ESCAPE
 import org.lwjgl.opengl.EXTABGR
@@ -95,7 +95,7 @@ private class CoordinateSystems {
 
             show()   // Make the window visible
 
-            framebufferSizeCallback = Companion::framebuffer_size_callback
+            framebufferSizeCallback = this@CoordinateSystems::framebuffer_size_callback
         }
 
         /* This line is critical for LWJGL's interoperation with GLFW's OpenGL context, or any context that is managed
@@ -105,7 +105,7 @@ private class CoordinateSystems {
 
 
         // build and compile our shader program, you can name your shader files however you like
-        ourShader = shaderOf(this::class, "shaders/tutA_11", "coordinate-systems")
+        ourShader = shaderOf(this::class, "shaders/A_11", "coordinate-systems")
 
 
         //  set up vertex data (and buffer(s)) and configure vertex attributes
@@ -122,10 +122,10 @@ private class CoordinateSystems {
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices, GL_STATIC_DRAW)
 
         //  position attribute
-        glVertexAttribPointer(semantic.attr.POSITION, Vec3.length, GL_FLOAT, false, Vec3.SIZE + Vec2.SIZE, 0)
+        glVertexAttribPointer(semantic.attr.POSITION, Vec3.length, GL_FLOAT, false, Vec3.size + Vec2.size, 0)
         glEnableVertexAttribArray(semantic.attr.POSITION)
         // texture coord attribute
-        glVertexAttribPointer(semantic.attr.TEXCOORD, Vec2.length, GL_FLOAT, false, Vec3.SIZE + Vec2.SIZE, Vec3.SIZE)
+        glVertexAttribPointer(semantic.attr.TEXCOORD, Vec2.length, GL_FLOAT, false, Vec3.size + Vec2.size, Vec3.size)
         glEnableVertexAttribArray(semantic.attr.TEXCOORD)
 
 
@@ -211,7 +211,7 @@ private class CoordinateSystems {
                 val projection = glm.perspective(45.0f.rad, 800.0f / 600.0f, 0.1f, 100.0f)
                 //  retrieve the matrix uniform locations
                 val modelLoc = glGetUniformLocation(ourShader, "model")
-                val viewLoc  = glGetUniformLocation(ourShader, "view")
+                val viewLoc = glGetUniformLocation(ourShader, "view")
                 //  pass them to the shaders (3 different ways)
                 glUniformMatrix4f(modelLoc, model)
                 glUniformMatrix4f(viewLoc, view)
@@ -248,18 +248,15 @@ private class CoordinateSystems {
     /** process all input: query GLFW whether relevant keys are pressed/released this frame and react accordingly   */
     fun processInput(window: GlfwWindow) {
 
-        if (window.key(GLFW_KEY_ESCAPE).pressed)
+        if (window.pressed(GLFW_KEY_ESCAPE))
             window.shouldClose = true
     }
 
-    companion object {
+    /** glfw: whenever the window size changed (by OS or user resize) this callback function executes   */
+    fun framebuffer_size_callback(width: Int, height: Int) {
 
-        /** glfw: whenever the window size changed (by OS or user resize) this callback function executes   */
-        fun framebuffer_size_callback(width: Int, height: Int) {
-
-            /*  make sure the viewport matches the new window dimensions; note that width and height will be significantly
-                larger than specified on retina displays.     */
-            glViewport(0, 0, width, height)
-        }
+        /*  make sure the viewport matches the new window dimensions; note that width and height will be significantly
+            larger than specified on retina displays.     */
+        glViewport(0, 0, width, height)
     }
 }
