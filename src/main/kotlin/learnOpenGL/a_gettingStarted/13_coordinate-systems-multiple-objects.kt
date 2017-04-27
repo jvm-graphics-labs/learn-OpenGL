@@ -1,7 +1,7 @@
-package learnOpenGL.A_gettingStarted
+package learnOpenGL.a_gettingStarted
 
 /**
- * Created by elect on 26/04/17.
+ * Created by GBarbieri on 25.04.2017.
  */
 
 import glm.glm
@@ -10,7 +10,7 @@ import glm.rad
 import glm.vec2.Vec2
 import glm.vec3.Vec3
 import learnOpenGL.common.*
-import org.lwjgl.glfw.GLFW.*
+import org.lwjgl.glfw.GLFW.GLFW_KEY_ESCAPE
 import org.lwjgl.opengl.EXTABGR
 import org.lwjgl.opengl.GL
 import org.lwjgl.opengl.GL11.*
@@ -26,19 +26,17 @@ import uno.buffer.floatBufferOf
 import uno.buffer.intBufferBig
 import uno.glf.semantic
 import uno.gln.*
-import glm.vec3.operators.times
-
 
 fun main(args: Array<String>) {
 
-    with(CameraKeyboardDt()) {
+    with(CoordinateSystemsMultipleObjects()) {
 
         run()
         end()
     }
 }
 
-private class CameraKeyboardDt {
+private class CoordinateSystemsMultipleObjects {
 
     val window: GlfwWindow
 
@@ -114,14 +112,6 @@ private class CameraKeyboardDt {
     val semantic.sampler.DIFFUSE_A get() = 0
     val semantic.sampler.DIFFUSE_B get() = 1
 
-    // camera
-    var cameraPos = Vec3(0.0f, 0.0f, 3.0f)
-    val cameraFront = Vec3(0.0f, 0.0f, -1.0f)
-    val cameraUp = Vec3(0.0f, 1.0f, 0.0f)
-
-    var deltaTime = 0.0f    // time between current frame and last frame
-    var lastFrame = 0.0f
-
     init {
 
         with(glfw) {
@@ -138,7 +128,7 @@ private class CameraKeyboardDt {
         }
 
         //  glfw window creation
-        window = GlfwWindow(800, 600, "Camera Keyboard Dt")
+        window = GlfwWindow(800, 600, "Coordinate Systems Multiple Objects")
 
         with(window) {
 
@@ -146,7 +136,7 @@ private class CameraKeyboardDt {
 
             show()   // Make the window visible
 
-            framebufferSizeCallback = this@CameraKeyboardDt::framebuffer_size_callback
+            framebufferSizeCallback = this@CoordinateSystemsMultipleObjects::framebuffer_size_callback
         }
 
         /* This line is critical for LWJGL's interoperation with GLFW's OpenGL context, or any context that is managed
@@ -160,7 +150,7 @@ private class CameraKeyboardDt {
 
 
         // build and compile our shader program, you can name your shader files however you like
-        ourShader = shaderOf(this::class, "shaders/A_15", "camera")
+        ourShader = shaderOf(this::class, "shaders/a/_12", "coordinate-systems")
 
 
         //  set up vertex data (and buffer(s)) and configure vertex attributes
@@ -234,10 +224,6 @@ private class CameraKeyboardDt {
 
             "textureA".location.int = semantic.sampler.DIFFUSE_A
             "textureB".location.int = semantic.sampler.DIFFUSE_B
-
-            // pass projection matrix to shader (as projection matrix rarely changes there's no need to do this per frame)
-            val projection = glm.perspective(45.0f.rad, 800.0f / 600.0f, 0.1f, 100.0f)
-            "projection".location.mat4 = projection
         }
     }
 
@@ -245,13 +231,6 @@ private class CameraKeyboardDt {
 
         //  render loop
         while (window.shouldNotClose) {
-
-            // per-frame time logic
-            // --------------------
-            val currentFrame = glfw.time
-            deltaTime = currentFrame - lastFrame
-            lastFrame = currentFrame
-
 
             //  input
             processInput(window)
@@ -268,9 +247,12 @@ private class CameraKeyboardDt {
 
             usingProgram(ourShader) {
 
-                // camera/view transformation
-                val view = glm.lookAt(cameraPos, cameraPos + cameraFront, cameraUp)
+                //  create transformations
+                val view = glm.translate(Mat4(), 0.0f, 0.0f, -3.0f)
+                val projection = glm.perspective(45.0f.rad, 800.0f / 600.0f, 0.1f, 100.0f)
+                //  retrieve the matrix uniform locations
                 "view".location.mat4 = view
+                "projection".location.mat4 = projection
 
                 // render boxes
                 glBindVertexArray(vao)
@@ -311,18 +293,6 @@ private class CameraKeyboardDt {
 
         if (window.pressed(GLFW_KEY_ESCAPE))
             window.shouldClose = true
-
-        val cameraSpeed = 2.5 * deltaTime
-        if (window.pressed(GLFW_KEY_W))
-            cameraPos += cameraSpeed * cameraFront
-        if (window.pressed(GLFW_KEY_S))
-            cameraPos -= cameraSpeed * cameraFront
-        if (window.pressed(GLFW_KEY_A))
-            cameraPos -= glm.normalize(glm.cross(cameraFront, cameraUp)) * cameraSpeed  // glm classic
-        if (window.pressed(GLFW_KEY_D))
-            cameraPos += (cameraFront cross cameraUp).normalize_() * cameraSpeed    // glm enhanced
-
-        // TODO up/down?
     }
 
     /** glfw: whenever the window size changed (by OS or user resize) this callback function executes   */

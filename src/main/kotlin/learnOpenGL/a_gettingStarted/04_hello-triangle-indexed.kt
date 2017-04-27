@@ -1,4 +1,4 @@
-package learnOpenGL.A_gettingStarted
+package learnOpenGL.a_gettingStarted
 
 /**
  * Created by GBarbieri on 24.04.2017.

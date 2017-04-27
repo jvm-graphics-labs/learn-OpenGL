@@ -1,9 +1,11 @@
-package learnOpenGL.A_gettingStarted
+package learnOpenGL.a_gettingStarted
 
 /**
  * Created by GBarbieri on 25.04.2017.
  */
 
+
+import glm.mat4x4.Mat4
 import glm.vec2.Vec2
 import glm.vec3.Vec3
 import learnOpenGL.common.*
@@ -15,50 +17,74 @@ import org.lwjgl.opengl.GL12.GL_BGR
 import org.lwjgl.opengl.GL13.GL_TEXTURE0
 import org.lwjgl.opengl.GL13.glActiveTexture
 import org.lwjgl.opengl.GL15.*
-import org.lwjgl.opengl.GL20.*
 import org.lwjgl.opengl.GL30.*
 import uno.buffer.*
 import uno.glf.semantic
-import uno.gln.glBindVertexArray
-import uno.gln.glDrawElements
-import uno.gln.glVertexAttribPointer
-import uno.gln.usingProgram
+import uno.gln.*
+import glm.glm
+import glm.rad
+import org.lwjgl.opengl.GL20.*
 
 fun main(args: Array<String>) {
 
-    with(TexturesCombined()) {
+    with(CoordinateSystemsDepth()) {
 
         run()
         end()
     }
 }
 
-private class TexturesCombined {
+private class CoordinateSystemsDepth {
 
     val window: GlfwWindow
 
     val ourShader: Int
 
-    object Buffer {
-        val Vertex = 0
-        val Element = 1
-        val Max = 2
-    }
-
-    val buffers = intBufferBig(Buffer.Max)
+    val vbo = intBufferBig(1)
     val vao = intBufferBig(1)
 
     val vertices = floatBufferOf(
-            // positions        // texture coords
-            +0.5f, +0.5f, 0.0f, 1.0f, 1.0f, // top right
-            +0.5f, -0.5f, 0.0f, 1.0f, 0.0f, // bottom right
-            -0.5f, -0.5f, 0.0f, 0.0f, 0.0f, // bottom left
-            -0.5f, +0.5f, 0.0f, 0.0f, 1.0f  // top left
-    )
-    val indices = intBufferOf(
-            0, 1, 3, // first triangle
-            1, 2, 3  // second triangle
-    )
+            -0.5f, -0.5f, -0.5f, 0.0f, 0.0f,
+            +0.5f, -0.5f, -0.5f, 1.0f, 0.0f,
+            +0.5f, +0.5f, -0.5f, 1.0f, 1.0f,
+            +0.5f, +0.5f, -0.5f, 1.0f, 1.0f,
+            -0.5f, +0.5f, -0.5f, 0.0f, 1.0f,
+            -0.5f, -0.5f, -0.5f, 0.0f, 0.0f,
+
+            -0.5f, -0.5f, +0.5f, 0.0f, 0.0f,
+            +0.5f, -0.5f, +0.5f, 1.0f, 0.0f,
+            +0.5f, +0.5f, +0.5f, 1.0f, 1.0f,
+            +0.5f, +0.5f, +0.5f, 1.0f, 1.0f,
+            -0.5f, +0.5f, +0.5f, 0.0f, 1.0f,
+            -0.5f, -0.5f, +0.5f, 0.0f, 0.0f,
+
+            -0.5f, +0.5f, +0.5f, 1.0f, 0.0f,
+            -0.5f, +0.5f, -0.5f, 1.0f, 1.0f,
+            -0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
+            -0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
+            -0.5f, -0.5f, +0.5f, 0.0f, 0.0f,
+            -0.5f, +0.5f, +0.5f, 1.0f, 0.0f,
+
+            +0.5f, +0.5f, +0.5f, 1.0f, 0.0f,
+            +0.5f, +0.5f, -0.5f, 1.0f, 1.0f,
+            +0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
+            +0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
+            +0.5f, -0.5f, +0.5f, 0.0f, 0.0f,
+            +0.5f, +0.5f, +0.5f, 1.0f, 0.0f,
+
+            -0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
+            +0.5f, -0.5f, -0.5f, 1.0f, 1.0f,
+            +0.5f, -0.5f, +0.5f, 1.0f, 0.0f,
+            +0.5f, -0.5f, +0.5f, 1.0f, 0.0f,
+            -0.5f, -0.5f, +0.5f, 0.0f, 0.0f,
+            -0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
+
+            -0.5f, +0.5f, -0.5f, 0.0f, 1.0f,
+            +0.5f, +0.5f, -0.5f, 1.0f, 1.0f,
+            +0.5f, +0.5f, +0.5f, 1.0f, 0.0f,
+            +0.5f, +0.5f, +0.5f, 1.0f, 0.0f,
+            -0.5f, +0.5f, +0.5f, 0.0f, 0.0f,
+            -0.5f, +0.5f, -0.5f, 0.0f, 1.0f)
 
     object Texture {
         val A = 0
@@ -87,7 +113,7 @@ private class TexturesCombined {
         }
 
         //  glfw window creation
-        window = GlfwWindow(800, 600, "Textures Combined")
+        window = GlfwWindow(800, 600, "Coordinate Systems Depth")
 
         with(window) {
 
@@ -95,7 +121,7 @@ private class TexturesCombined {
 
             show()   // Make the window visible
 
-            framebufferSizeCallback = this@TexturesCombined::framebuffer_size_callback
+            framebufferSizeCallback = this@CoordinateSystemsDepth::framebuffer_size_callback
         }
 
         /* This line is critical for LWJGL's interoperation with GLFW's OpenGL context, or any context that is managed
@@ -104,22 +130,23 @@ private class TexturesCombined {
         GL.createCapabilities()
 
 
+        // configure global opengl state
+        glEnable(GL_DEPTH_TEST)
+
+
         // build and compile our shader program, you can name your shader files however you like
-        ourShader = shaderOf(this::class, "shaders/A_09", "texture")
+        ourShader = shaderOf(this::class, "shaders/a/_12", "coordinate-systems")
 
 
         //  set up vertex data (and buffer(s)) and configure vertex attributes
         glGenVertexArrays(vao)
-        glGenBuffers(buffers)
+        glGenBuffers(vbo)
 
         //  bind the Vertex Array Object first, then bind and set vertex buffer(s), and then configure vertex attributes(s).
         glBindVertexArray(vao)
 
-        glBindBuffer(GL_ARRAY_BUFFER, buffers[Buffer.Vertex])
+        glBindBuffer(GL_ARRAY_BUFFER, vbo)
         glBufferData(GL_ARRAY_BUFFER, vertices, GL_STATIC_DRAW)
-
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, buffers[Buffer.Element])
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices, GL_STATIC_DRAW)
 
         //  position attribute
         glVertexAttribPointer(semantic.attr.POSITION, Vec3.length, GL_FLOAT, false, Vec3.size + Vec2.size, 0)
@@ -169,6 +196,7 @@ private class TexturesCombined {
 
         data.destroy()
 
+
         /*  You can unbind the VAO afterwards so other VAO calls won't accidentally modify this VAO, but this rarely happens.
             Modifying other VAOs requires a call to glBindVertexArray anyways so we generally don't unbind VAOs (nor VBOs)
             when it's not directly necessary.   */
@@ -179,11 +207,7 @@ private class TexturesCombined {
             Code passed to usingProgram() {..] is executed using the given program, which at the end gets unbound   */
         usingProgram(ourShader) {
 
-            // either set it manually like so:
-            val textureA_location = glGetUniformLocation(ourShader, "textureA")
-            glUniform1i(textureA_location, semantic.sampler.DIFFUSE_A)
-
-            // or set it via glNext
+            "textureA".location.int = semantic.sampler.DIFFUSE_A
             "textureB".location.int = semantic.sampler.DIFFUSE_B
         }
     }
@@ -198,18 +222,35 @@ private class TexturesCombined {
 
             //  render
             glClearColor(0.2f, 0.3f, 0.3f, 1.0f)
-            glClear(GL_COLOR_BUFFER_BIT)
+            glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT) // also clear the depth buffer now!
 
-            // bind textures on corresponding texture units
+            //  bind textures on corresponding texture units
             glActiveTexture(GL_TEXTURE0 + semantic.sampler.DIFFUSE_A)
             glBindTexture(GL_TEXTURE_2D, textures[Texture.A])
             glActiveTexture(GL_TEXTURE0 + semantic.sampler.DIFFUSE_B)
             glBindTexture(GL_TEXTURE_2D, textures[Texture.B])
 
-            // render container
-            glUseProgram(ourShader)
-            glBindVertexArray(vao)
-            glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT)
+            usingProgram(ourShader) {
+
+                //  create transformations
+                val model = glm.rotate(Mat4(), glfw.time, 0.5f, 1.0f, 0.0f)
+                val view = glm.translate(Mat4(), 0.0f, 0.0f, -3.0f)
+                val projection = glm.perspective(45.0f.rad, 800.0f / 600.0f, 0.1f, 100.0f)
+                //  retrieve the matrix uniform locations
+                val modelLoc = glGetUniformLocation(ourShader, "model")
+                val viewLoc = glGetUniformLocation(ourShader, "view")
+                //  pass them to the shaders (3 different ways)
+                glUniformMatrix4fv(modelLoc, false, model to mat4Buffer)
+                glUniformMatrix4f(viewLoc, view)
+                /*  note: currently we set the projection matrix each frame, but since the projection matrix rarely
+                    changes it's often best practice to set it outside the main loop only once. Best place is the
+                    framebuffer size callback   */
+                "projection".location.mat4 = projection
+
+                //  render container
+                glBindVertexArray(vao)
+                glDrawArrays(GL_TRIANGLES, 36)
+            }
 
             //  glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
             window.swapBuffers()
@@ -221,10 +262,10 @@ private class TexturesCombined {
 
         //  optional: de-allocate all resources once they've outlived their purpose:
         glDeleteVertexArrays(vao)
-        glDeleteBuffers(buffers)
+        glDeleteBuffers(vbo)
         glDeleteTextures(textures)
 
-        destroyBuffers(vao, buffers, textures, vertices, indices)
+        destroyBuffers(vao, vbo, textures, vertices)
 
         window.dispose()
         //  glfw: terminate, clearing all previously allocated GLFW resources.

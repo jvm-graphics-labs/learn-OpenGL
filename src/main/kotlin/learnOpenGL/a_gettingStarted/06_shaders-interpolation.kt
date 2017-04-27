@@ -1,4 +1,4 @@
-package learnOpenGL.A_gettingStarted
+package learnOpenGL.a_gettingStarted
 
 /**
  * Created by GBarbieri on 24.04.2017.
@@ -15,7 +15,7 @@ import uno.glf.semantic
 
 fun main(args: Array<String>) {
 
-    with(learnOpenGL.A_gettingStarted.ShadersInterpolation()) {
+    with(learnOpenGL.a_gettingStarted.ShadersInterpolation()) {
 
         run()
         end()

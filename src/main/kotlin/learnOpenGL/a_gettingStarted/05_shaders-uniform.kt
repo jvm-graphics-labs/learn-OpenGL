@@ -1,12 +1,12 @@
-package learnOpenGL.A_gettingStarted
+package learnOpenGL.a_gettingStarted
 
 /**
- * Created by elect on 24/04/17.
+ * Created by GBarbieri on 24.04.2017.
  */
 
+import glm.glm.sin
 import glm.vec3.Vec3
 import learnOpenGL.common.GlfwWindow
-import learnOpenGL.common.Shader
 import learnOpenGL.common.glfw
 import org.lwjgl.glfw.GLFW.GLFW_KEY_ESCAPE
 import org.lwjgl.opengl.GL
@@ -22,32 +22,59 @@ import uno.glf.semantic
 import uno.gln.glBindBuffer
 import uno.gln.glBindVertexArray
 import uno.gln.glDrawArrays
-import uno.gln.glVertexAttribPointer
+
 
 fun main(args: Array<String>) {
 
-    with(ShadersClass()) {
+    with(ShadersUniform()) {
 
         run()
         end()
     }
 }
 
-private class ShadersClass {
+private class ShadersUniform {
 
     val window: GlfwWindow
 
-    val ourShader: Shader
+    val vertexShaderSource = """
+        #version 330 core
+
+        #define POSITION    0
+
+        layout (location = POSITION) in vec3 aPos;
+
+        void main()
+        {
+            gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);
+        }
+    """
+    val fragmentShaderSource = """
+        #version 330 core
+
+        #define FRAG_COLOR    0
+
+        layout (location = FRAG_COLOR) out vec4 fragColor;
+
+        uniform vec4 ourColor;
+
+        void main()
+        {
+            fragColor = ourColor;
+        }
+    """
+
+    val shaderProgram: Int
 
     val vbo = intBufferBig(1)
     val vao = intBufferBig(1)
 
     val vertices = floatBufferOf(
-            // positions        // colors
-            +0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f, // bottom right
-            -0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f, // bottom left
-            +0.0f, +0.5f, 0.0f, 0.0f, 0.0f, 1.0f  // top
+            +0.5f, -0.5f, 0.0f, // bottom right
+            -0.5f, -0.5f, 0.0f, // bottom left
+            +0.0f, +0.5f, 0.0f  // top
     )
+
 
     init {
 
@@ -65,7 +92,7 @@ private class ShadersClass {
         }
 
         //  glfw window creation
-        window = GlfwWindow(800, 600, "Shaders Class")
+        window = GlfwWindow(800, 600, "Shaders Uniform")
 
         with(window) {
 
@@ -73,7 +100,7 @@ private class ShadersClass {
 
             show()   // Make the window visible
 
-            framebufferSizeCallback = this@ShadersClass::framebuffer_size_callback
+            framebufferSizeCallback = this@ShadersUniform::framebuffer_size_callback
         }
 
         /* This line is critical for LWJGL's interoperation with GLFW's OpenGL context, or any context that is managed
@@ -82,9 +109,37 @@ private class ShadersClass {
         GL.createCapabilities()
 
 
-        // build and compile our shader program
-        ourShader = Shader("shaders/A_07", "shader") // you can name your shader files however you like
-
+        //  build and compile our shader program
+        //  vertex shader
+        val vertexShader = glCreateShader(GL_VERTEX_SHADER)
+        glShaderSource(vertexShader, vertexShaderSource)
+        glCompileShader(vertexShader)
+        //  heck for shader compile errors
+        if (glGetShaderi(vertexShader, GL_COMPILE_STATUS) == GL_FALSE) {
+            val infoLog = glGetShaderInfoLog(vertexShader)
+            System.err.println("ERROR::SHADER::VERTEX::COMPILATION_FAILED\n$infoLog")
+        }
+        //  fragment shader
+        val fragmentShader = glCreateShader(GL_FRAGMENT_SHADER)
+        glShaderSource(fragmentShader, fragmentShaderSource)
+        glCompileShader(fragmentShader)
+        //  check for shader compile errors
+        if (glGetShaderi(fragmentShader, GL_COMPILE_STATUS) == GL_FALSE) {
+            val infoLog = glGetShaderInfoLog(fragmentShader)
+            System.err.print("ERROR::SHADER::FRAGMENT::COMPILATION_FAILED\n$infoLog")
+        }
+        //  link shaders
+        shaderProgram = glCreateProgram()
+        glAttachShader(shaderProgram, vertexShader)
+        glAttachShader(shaderProgram, fragmentShader)
+        glLinkProgram(shaderProgram)
+        //  check for linking errors
+        if (glGetProgrami(shaderProgram, GL_LINK_STATUS) == GL_FALSE) {
+            val infoLog = glGetProgramInfoLog(shaderProgram)
+            System.err.print("ERROR::SHADER::PROGRAM::LINKING_FAILED\n$infoLog")
+        }
+        glDeleteShader(vertexShader)
+        glDeleteShader(fragmentShader)
 
         //  set up vertex data (and buffer(s)) and configure vertex attributes
         glGenVertexArrays(vao)
@@ -95,17 +150,17 @@ private class ShadersClass {
         glBindBuffer(GL_ARRAY_BUFFER, vbo)
         glBufferData(GL_ARRAY_BUFFER, vertices, GL_STATIC_DRAW)
 
-        //  position attribute
-        glVertexAttribPointer(semantic.attr.POSITION, Vec3.length, GL_FLOAT, false, 2 * Vec3.size, 0)
+        glVertexAttribPointer(semantic.attr.POSITION, Vec3.length, GL_FLOAT, false, Vec3.size, 0)
         glEnableVertexAttribArray(semantic.attr.POSITION)
-        //  color attribute
-        glVertexAttribPointer(semantic.attr.COLOR, Vec3.length, GL_FLOAT, false, 2 * Vec3.size, Vec3.size)
-        glEnableVertexAttribArray(semantic.attr.COLOR)
 
         /*  You can unbind the VAO afterwards so other VAO calls won't accidentally modify this VAO, but this rarely happens.
             Modifying other VAOs requires a call to glBindVertexArray anyways so we generally don't unbind VAOs (nor VBOs)
             when it's not directly necessary.   */
         //glBindVertexArray()
+
+        /*  bind the VAO (it was already bound, but just to demonstrate): seeing as we only have a single VAO we can just
+            bind it beforehand before rendering the respective triangle; this is another approach.     */
+        glBindVertexArray(vao)
     }
 
     fun run() {
@@ -120,9 +175,16 @@ private class ShadersClass {
             glClearColor(0.2f, 0.3f, 0.3f, 1.0f)
             glClear(GL_COLOR_BUFFER_BIT)
 
+            //  be sure to activate the shader before any calls to glUniform
+            glUseProgram(shaderProgram)
+
+            // update shader uniform
+            val timeValue = glfw.time
+            val greenValue = sin(timeValue) / 2.0f + 0.5f
+            val vertexColorLocation = glGetUniformLocation(shaderProgram, "ourColor")
+            glUniform4f(vertexColorLocation, 0.0f, greenValue, 0.0f, 1.0f)
+
             // render the triangle
-            ourShader.use()
-            glBindVertexArray(vao)
             glDrawArrays(GL_TRIANGLES, 3)
 
             //  glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)

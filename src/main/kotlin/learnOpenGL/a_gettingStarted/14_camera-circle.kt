@@ -1,4 +1,4 @@
-package learnOpenGL.A_gettingStarted
+package learnOpenGL.a_gettingStarted
 
 /**
  * Created by elect on 26/04/17.
@@ -152,7 +152,7 @@ private class CameraCircle {
 
 
         // build and compile our shader program, you can name your shader files however you like
-        ourShader = shaderOf(this::class, "shaders/A_14", "camera")
+        ourShader = shaderOf(this::class, "shaders/a/_14", "camera")
 
 
         //  set up vertex data (and buffer(s)) and configure vertex attributes

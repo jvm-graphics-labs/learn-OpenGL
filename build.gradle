@@ -22,9 +22,9 @@ dependencies {
 
     compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion"
 
-    compile 'com.github.kotlin-graphics:glm:3417cb89758b0a78fc3a11b05d925bbf73fa2d19'
+    compile 'com.github.kotlin-graphics:glm:058335f9da130e6ee96e70aeaae97a396acaa92b'
 
-    compile 'com.github.kotlin-graphics:uno-sdk:80560b5a853a816befe72de4051e8827e7949527'
+    compile 'com.github.kotlin-graphics:uno-sdk:a0c1cefec9565661c0540ae8ce838600a9c4d559'
 
 //    testCompile("io.kotlintest:kotlintest:2.0.0")
 
@@ -56,7 +56,7 @@ dependencies {
 
 repositories {
     mavenCentral()
-    maven { url 'https://jitpack.io' }
     maven { url "https://dl.bintray.com/kotlin/kotlin-dev" }
     maven { url "https://oss.sonatype.org/content/repositories/snapshots/" }
+    maven { url 'https://jitpack.io' }
 }

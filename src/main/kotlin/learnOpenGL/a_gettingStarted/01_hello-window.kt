@@ -1,25 +1,25 @@
-package learnOpenGL.A_gettingStarted
-
-/**
- * Created by GBarbieri on 24.04.2017.
- */
+package learnOpenGL.a_gettingStarted
 
 import learnOpenGL.common.GlfwWindow
 import learnOpenGL.common.glfw
 import org.lwjgl.glfw.GLFW.GLFW_KEY_ESCAPE
 import org.lwjgl.opengl.GL
-import org.lwjgl.opengl.GL11.*
+import org.lwjgl.opengl.GL11.glViewport
+
+/**
+ * Created by GBarbieri on 24.04.2017.
+ */
 
 fun main(args: Array<String>) {
 
-    with(HelloWindowClear()) {
+    with(HelloWindow()) {
 
         run()
         end()
     }
 }
 
-private class HelloWindowClear {
+private class HelloWindow {
 
     val window: GlfwWindow
 
@@ -39,7 +39,7 @@ private class HelloWindowClear {
         }
 
         //  glfw window creation
-        window = GlfwWindow(800, 600, "Hello Window Clear")
+        window = GlfwWindow(800, 600, "Hello Window")
 
         with(window) {
 
@@ -47,7 +47,7 @@ private class HelloWindowClear {
 
             show()   // Make the window visible
 
-            framebufferSizeCallback = this@HelloWindowClear::framebuffer_size_callback
+            framebufferSizeCallback =  this@HelloWindow::framebuffer_size_callback
         }
 
         /* This line is critical for LWJGL's interoperation with GLFW's OpenGL context, or any context that is managed
@@ -64,10 +64,6 @@ private class HelloWindowClear {
             //  input
             processInput(window)
 
-            //  render
-            glClearColor(0.2f, 0.3f, 0.3f, 1.0f)
-            glClear(GL_COLOR_BUFFER_BIT)
-
             //  glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
             window.swapBuffers()
             glfw.pollEvents()
@@ -82,19 +78,17 @@ private class HelloWindowClear {
     }
 
     /** process all input: query GLFW whether relevant keys are pressed/released this frame and react accordingly   */
-    private fun processInput(window: GlfwWindow) {
+    fun processInput(window: GlfwWindow) {
 
         if (window.pressed(GLFW_KEY_ESCAPE))
             window.shouldClose = true
     }
 
     /** glfw: whenever the window size changed (by OS or user resize) this callback function executes   */
-    private fun framebuffer_size_callback(width: Int, height: Int) {
+    fun framebuffer_size_callback(width: Int, height: Int) {
 
         /*  make sure the viewport matches the new window dimensions; note that width and height will be
             significantly larger than specified on retina displays.     */
         glViewport(0, 0, width, height)
     }
 }
-
-

@@ -1,10 +1,9 @@
-package learnOpenGL.A_gettingStarted
+package learnOpenGL.a_gettingStarted
 
 /**
  * Created by GBarbieri on 24.04.2017.
  */
 
-import glm.glm.sin
 import glm.vec3.Vec3
 import learnOpenGL.common.GlfwWindow
 import learnOpenGL.common.glfw
@@ -23,17 +22,16 @@ import uno.gln.glBindBuffer
 import uno.gln.glBindVertexArray
 import uno.gln.glDrawArrays
 
-
 fun main(args: Array<String>) {
 
-    with(ShadersUniform()) {
+    with(HelloTriangle()) {
 
         run()
         end()
     }
 }
 
-private class ShadersUniform {
+private class HelloTriangle {
 
     val window: GlfwWindow
 
@@ -43,7 +41,6 @@ private class ShadersUniform {
         #define POSITION    0
 
         layout (location = POSITION) in vec3 aPos;
-
         void main()
         {
             gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);
@@ -55,12 +52,9 @@ private class ShadersUniform {
         #define FRAG_COLOR    0
 
         layout (location = FRAG_COLOR) out vec4 fragColor;
-
-        uniform vec4 ourColor;
-
         void main()
         {
-            fragColor = ourColor;
+            fragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);
         }
     """
 
@@ -70,8 +64,8 @@ private class ShadersUniform {
     val vao = intBufferBig(1)
 
     val vertices = floatBufferOf(
-            +0.5f, -0.5f, 0.0f, // bottom right
-            -0.5f, -0.5f, 0.0f, // bottom left
+            -0.5f, -0.5f, 0.0f, // left
+            +0.5f, -0.5f, 0.0f, // right
             +0.0f, +0.5f, 0.0f  // top
     )
 
@@ -92,7 +86,7 @@ private class ShadersUniform {
         }
 
         //  glfw window creation
-        window = GlfwWindow(800, 600, "Shaders Uniform")
+        window = GlfwWindow(800, 600, "Hello Triangle")
 
         with(window) {
 
@@ -100,7 +94,7 @@ private class ShadersUniform {
 
             show()   // Make the window visible
 
-            framebufferSizeCallback = this@ShadersUniform::framebuffer_size_callback
+            framebufferSizeCallback = this@HelloTriangle::framebuffer_size_callback
         }
 
         /* This line is critical for LWJGL's interoperation with GLFW's OpenGL context, or any context that is managed
@@ -141,6 +135,7 @@ private class ShadersUniform {
         glDeleteShader(vertexShader)
         glDeleteShader(fragmentShader)
 
+
         //  set up vertex data (and buffer(s)) and configure vertex attributes
         glGenVertexArrays(vao)
         glGenBuffers(vbo)
@@ -153,14 +148,17 @@ private class ShadersUniform {
         glVertexAttribPointer(semantic.attr.POSITION, Vec3.length, GL_FLOAT, false, Vec3.size, 0)
         glEnableVertexAttribArray(semantic.attr.POSITION)
 
+        /*  note that this is allowed, the call to glVertexAttribPointer registered VBO as the vertex attribute's bound
+            vertex buffer object so afterwards we can safely unbind */
+        glBindBuffer(GL_ARRAY_BUFFER)
+
         /*  You can unbind the VAO afterwards so other VAO calls won't accidentally modify this VAO, but this rarely happens.
             Modifying other VAOs requires a call to glBindVertexArray anyways so we generally don't unbind VAOs (nor VBOs)
             when it's not directly necessary.   */
-        //glBindVertexArray()
+        glBindVertexArray()
 
-        /*  bind the VAO (it was already bound, but just to demonstrate): seeing as we only have a single VAO we can just
-            bind it beforehand before rendering the respective triangle; this is another approach.     */
-        glBindVertexArray(vao)
+        //  uncomment this call to draw in wireframe polygons.
+        //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
     }
 
     fun run() {
@@ -175,17 +173,13 @@ private class ShadersUniform {
             glClearColor(0.2f, 0.3f, 0.3f, 1.0f)
             glClear(GL_COLOR_BUFFER_BIT)
 
-            //  be sure to activate the shader before any calls to glUniform
+            //  draw our first triangle
             glUseProgram(shaderProgram)
-
-            // update shader uniform
-            val timeValue = glfw.time
-            val greenValue = sin(timeValue) / 2.0f + 0.5f
-            val vertexColorLocation = glGetUniformLocation(shaderProgram, "ourColor")
-            glUniform4f(vertexColorLocation, 0.0f, greenValue, 0.0f, 1.0f)
-
-            // render the triangle
+            /*  seeing as we only have a single VAO there's no need to bind it every time, but we'll do so to keep
+                things a bit more organized         */
+            glBindVertexArray(vao)
             glDrawArrays(GL_TRIANGLES, 3)
+            // glBindVertexArray() // no need to unbind it every time
 
             //  glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
             window.swapBuffers()
@@ -221,3 +215,6 @@ private class ShadersUniform {
         glViewport(0, 0, width, height)
     }
 }
+
+
+

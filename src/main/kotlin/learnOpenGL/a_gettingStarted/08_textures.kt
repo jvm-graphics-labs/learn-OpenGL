@@ -1,42 +1,39 @@
-package learnOpenGL.A_gettingStarted
+package learnOpenGL.a_gettingStarted
 
 /**
- * Created by GBarbieri on 25.04.2017.
+ * Created by elect on 24/04/17.
  */
 
-import glm.mat4x4.Mat4
 import glm.vec2.Vec2
 import glm.vec3.Vec3
 import learnOpenGL.common.*
 import org.lwjgl.glfw.GLFW.GLFW_KEY_ESCAPE
-import org.lwjgl.opengl.EXTABGR
-import org.lwjgl.opengl.GL
 import org.lwjgl.opengl.GL11.*
 import org.lwjgl.opengl.GL12.GL_BGR
-import org.lwjgl.opengl.GL13.GL_TEXTURE0
-import org.lwjgl.opengl.GL13.glActiveTexture
 import org.lwjgl.opengl.GL15.*
 import org.lwjgl.opengl.GL20.glEnableVertexAttribArray
-import org.lwjgl.opengl.GL20.glGetUniformLocation
 import org.lwjgl.opengl.GL30.*
 import uno.buffer.*
 import uno.glf.semantic
-import uno.gln.*
+import uno.gln.glBindTexture
+import uno.gln.glBindVertexArray
+import uno.gln.glDrawElements
+import uno.gln.glVertexAttribPointer
 
 fun main(args: Array<String>) {
 
-    with(Transformations()) {
+    with(learnOpenGL.a_gettingStarted.Textures()) {
 
         run()
         end()
     }
 }
 
-private class Transformations {
+private class Textures {
 
-    val window: GlfwWindow
+    val window: learnOpenGL.common.GlfwWindow
 
-    val ourShader: Int
+    val ourShader: learnOpenGL.common.Shader
 
     object Buffer {
         val Vertex = 0
@@ -44,49 +41,40 @@ private class Transformations {
         val Max = 2
     }
 
-    val buffers = intBufferBig(Buffer.Max)
-    val vao = intBufferBig(1)
+    val buffers = uno.buffer.intBufferBig(Buffer.Max)
+    val vao = uno.buffer.intBufferBig(1)
 
-    val vertices = floatBufferOf(
+    val vertices = uno.buffer.floatBufferOf(
             // positions        // texture coords
             +0.5f, +0.5f, 0.0f, 1.0f, 1.0f, // top right
             +0.5f, -0.5f, 0.0f, 1.0f, 0.0f, // bottom right
             -0.5f, -0.5f, 0.0f, 0.0f, 0.0f, // bottom left
             -0.5f, +0.5f, 0.0f, 0.0f, 1.0f  // top left
     )
-    val indices = intBufferOf(
+    val indices = uno.buffer.intBufferOf(
             0, 1, 3, // first triangle
             1, 2, 3  // second triangle
     )
 
-    object Texture {
-        val A = 0
-        val B = 1
-        val Max = 2
-    }
-
-    val textures = intBufferBig(Texture.Max)
-
-    val semantic.sampler.DIFFUSE_A get() = 0
-    val semantic.sampler.DIFFUSE_B get() = 1
+    val texture = uno.buffer.intBufferBig(1)
 
     init {
 
-        with(glfw) {
+        with(learnOpenGL.common.glfw) {
 
             /*  Initialize GLFW. Most GLFW functions will not work before doing this.
                 It also setups an error callback. The default implementation will print the error message in System.err.    */
-            init()
+            learnOpenGL.common.glfw.init()
 
             //  Configure GLFW
-            windowHint {
+            learnOpenGL.common.glfw.windowHint {
                 version = "3.3"
                 profile = "core"
             }
         }
 
         //  glfw window creation
-        window = GlfwWindow(800, 600, "Transformations")
+        window = learnOpenGL.common.GlfwWindow(800, 600, "Textures")
 
         with(window) {
 
@@ -94,17 +82,17 @@ private class Transformations {
 
             show()   // Make the window visible
 
-            framebufferSizeCallback = this@Transformations::framebuffer_size_callback
+            framebufferSizeCallback = this@Textures::framebuffer_size_callback
         }
 
         /* This line is critical for LWJGL's interoperation with GLFW's OpenGL context, or any context that is managed
            externally. LWJGL detects the context that is current in the current thread, creates the GLCapabilities instance
            and makes the OpenGL bindings available for use.    */
-        GL.createCapabilities()
+        org.lwjgl.opengl.GL.createCapabilities()
 
 
-        // build and compile our shader program, you can name your shader files however you like
-        ourShader = shaderOf(this::class, "shaders/A_10", "transform")
+        // build and compile our shader program
+        ourShader = learnOpenGL.common.Shader("shaders/a/_08", "texture") // you can name your shader files however you like
 
 
         //  set up vertex data (and buffer(s)) and configure vertex attributes
@@ -114,25 +102,24 @@ private class Transformations {
         //  bind the Vertex Array Object first, then bind and set vertex buffer(s), and then configure vertex attributes(s).
         glBindVertexArray(vao)
 
-        glBindBuffer(GL_ARRAY_BUFFER, buffers[Buffer.Vertex])
+        glBindBuffer(GL_ARRAY_BUFFER, buffers[learnOpenGL.a_gettingStarted.Textures.Buffer.Vertex])
         glBufferData(GL_ARRAY_BUFFER, vertices, GL_STATIC_DRAW)
 
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, buffers[Buffer.Element])
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, buffers[learnOpenGL.a_gettingStarted.Textures.Buffer.Element])
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices, GL_STATIC_DRAW)
 
         //  position attribute
         glVertexAttribPointer(semantic.attr.POSITION, Vec3.length, GL_FLOAT, false, Vec3.size + Vec2.size, 0)
-        glEnableVertexAttribArray(semantic.attr.POSITION)
+        glEnableVertexAttribArray(uno.glf.semantic.attr.POSITION)
         // texture coord attribute
         glVertexAttribPointer(semantic.attr.TEXCOORD, Vec2.length, GL_FLOAT, false, Vec3.size + Vec2.size, Vec3.size)
-        glEnableVertexAttribArray(semantic.attr.TEXCOORD)
+        glEnableVertexAttribArray(uno.glf.semantic.attr.TEXCOORD)
 
 
         // load and create a texture
-        glGenTextures(textures)
-
-        //  texture A
-        glBindTexture(GL_TEXTURE_2D, textures[Texture.A])
+        glGenTextures(texture)
+        //  all upcoming GL_TEXTURE_2D operations now have effect on this texture object
+        glBindTexture(GL_TEXTURE_2D, texture)
         //  set the texture wrapping parameters to GL_REPEAT (default wrapping method)
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT)
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT)
@@ -141,47 +128,18 @@ private class Transformations {
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
 
         // load image, create texture and generate mipmaps
-        var image = readImage("textures/container.jpg").flipY()
-        var data = image.toByteBuffer()
+        val image = learnOpenGL.common.readImage("textures/container.jpg")
+        val data = image.toByteBuffer()
 
-        glTexImage2D(GL_TEXTURE_2D, GL_RGB, image.width, image.height, GL_BGR, GL_UNSIGNED_BYTE, data)
+        learnOpenGL.common.glTexImage2D(GL_TEXTURE_2D, GL_RGB, image.width, image.height, GL_BGR, GL_UNSIGNED_BYTE, data)
         glGenerateMipmap(GL_TEXTURE_2D)
 
         data.destroy()
-
-
-        //  texture B
-        glBindTexture(GL_TEXTURE_2D, textures[Texture.B])
-        //  set the texture wrapping parameters to GL_REPEAT (default wrapping method)
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT)
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT)
-        // set texture filtering parameters
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
-
-        // load image, create texture and generate mipmaps
-        image = readImage("textures/awesomeface.png").flipY()
-        data = image.toByteBuffer()
-
-        glTexImage2D(GL_TEXTURE_2D, GL_RGB, image.width, image.height, EXTABGR.GL_ABGR_EXT, GL_UNSIGNED_BYTE, data)
-        glGenerateMipmap(GL_TEXTURE_2D)
-
-        data.destroy()
-
 
         /*  You can unbind the VAO afterwards so other VAO calls won't accidentally modify this VAO, but this rarely happens.
             Modifying other VAOs requires a call to glBindVertexArray anyways so we generally don't unbind VAOs (nor VBOs)
             when it's not directly necessary.   */
         //glBindVertexArray()
-
-
-        /*  Tell opengl for each sampler to which texture unit it belongs to (only has to be done once)
-            Code passed to usingProgram() {..] is executed using the given program, which at the end gets unbound   */
-        usingProgram(ourShader) {
-
-            "textureA".location.int = semantic.sampler.DIFFUSE_A
-            "textureB".location.int = semantic.sampler.DIFFUSE_B
-        }
     }
 
     fun run() {
@@ -196,33 +154,17 @@ private class Transformations {
             glClearColor(0.2f, 0.3f, 0.3f, 1.0f)
             glClear(GL_COLOR_BUFFER_BIT)
 
-            //  bind textures on corresponding texture units
-            glActiveTexture(GL_TEXTURE0 + semantic.sampler.DIFFUSE_A)
-            glBindTexture(GL_TEXTURE_2D, textures[Texture.A])
-            glActiveTexture(GL_TEXTURE0 + semantic.sampler.DIFFUSE_B)
-            glBindTexture(GL_TEXTURE_2D, textures[Texture.B])
+            // bind Texture
+            glBindTexture(GL_TEXTURE_2D, texture)
 
-            //  create transformations
-            val transform = Mat4()
-                    .translate(0.5f, -0.5f, 0.0f)
-                    .rotate(glfw.time, 0.0f, 0.0f, 1.0f)
-
-            usingProgram(ourShader) {
-
-                // get matrix's uniform location and set matrix
-                val transformLoc = glGetUniformLocation(ourShader, "transform")
-                glUniformMatrix4f(transformLoc, transform)
-                // you may use instead this
-                // "transform".location.mat4 = transform
-
-                //  render container
-                glBindVertexArray(vao)
-                glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT)
-            }
+            // render the triangle
+            ourShader.use()
+            glBindVertexArray(vao)
+            glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT)
 
             //  glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
             window.swapBuffers()
-            glfw.pollEvents()
+            learnOpenGL.common.glfw.pollEvents()
         }
     }
 
@@ -231,17 +173,16 @@ private class Transformations {
         //  optional: de-allocate all resources once they've outlived their purpose:
         glDeleteVertexArrays(vao)
         glDeleteBuffers(buffers)
-        glDeleteTextures(textures)
 
-        destroyBuffers(vao, buffers, textures, vertices, indices)
+        uno.buffer.destroyBuffers(vao, buffers, vertices, indices)
 
         window.dispose()
         //  glfw: terminate, clearing all previously allocated GLFW resources.
-        glfw.terminate()
+        learnOpenGL.common.glfw.terminate()
     }
 
     /** process all input: query GLFW whether relevant keys are pressed/released this frame and react accordingly   */
-    fun processInput(window: GlfwWindow) {
+    fun processInput(window: learnOpenGL.common.GlfwWindow) {
 
         if (window.pressed(GLFW_KEY_ESCAPE))
             window.shouldClose = true

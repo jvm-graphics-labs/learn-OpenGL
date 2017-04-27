@@ -1,16 +1,15 @@
-package learnOpenGL.A_gettingStarted
+package learnOpenGL.a_gettingStarted
 
 /**
- * Created by GBarbieri on 25.04.2017.
+ * Created by GBarbieri on 27.04.2017.
  */
 
-import glm.glm
+import glm.*
 import glm.mat4x4.Mat4
-import glm.rad
 import glm.vec2.Vec2
 import glm.vec3.Vec3
 import learnOpenGL.common.*
-import org.lwjgl.glfw.GLFW.GLFW_KEY_ESCAPE
+import org.lwjgl.glfw.GLFW.*
 import org.lwjgl.opengl.EXTABGR
 import org.lwjgl.opengl.GL
 import org.lwjgl.opengl.GL11.*
@@ -26,17 +25,20 @@ import uno.buffer.floatBufferOf
 import uno.buffer.intBufferBig
 import uno.glf.semantic
 import uno.gln.*
+import learnOpenGL.common.Camera.Movement.*
+import learnOpenGL.common.GlfwWindow.Cursor.Disabled
+
 
 fun main(args: Array<String>) {
 
-    with(CoordinateSystemsMultipleObjects()) {
+    with(CameraClass()) {
 
         run()
         end()
     }
 }
 
-private class CoordinateSystemsMultipleObjects {
+private class CameraClass {
 
     val window: GlfwWindow
 
@@ -112,6 +114,16 @@ private class CoordinateSystemsMultipleObjects {
     val semantic.sampler.DIFFUSE_A get() = 0
     val semantic.sampler.DIFFUSE_B get() = 1
 
+    // camera
+    val camera = Camera(position = Vec3(0.0f, 0.0f, 3.0f))
+    var lastX = 800.0f / 2.0
+    var lastY = 600.0 / 2.0
+
+    var firstMouse = true
+
+    var deltaTime = 0.0f    // time between current frame and last frame
+    var lastFrame = 0.0f
+
     init {
 
         with(glfw) {
@@ -128,7 +140,7 @@ private class CoordinateSystemsMultipleObjects {
         }
 
         //  glfw window creation
-        window = GlfwWindow(800, 600, "Coordinate Systems Multiple Objects")
+        window = GlfwWindow(800, 600, "Camera Class")
 
         with(window) {
 
@@ -136,7 +148,12 @@ private class CoordinateSystemsMultipleObjects {
 
             show()   // Make the window visible
 
-            framebufferSizeCallback = this@CoordinateSystemsMultipleObjects::framebuffer_size_callback
+            framebufferSizeCallback = this@CameraClass::framebuffer_size_callback
+            cursorPosCallback = this@CameraClass::mouse_callback
+            scrollCallback = this@CameraClass::scroll_callback
+
+            // tell GLFW to capture our mouse
+            cursor = Disabled
         }
 
         /* This line is critical for LWJGL's interoperation with GLFW's OpenGL context, or any context that is managed
@@ -150,7 +167,7 @@ private class CoordinateSystemsMultipleObjects {
 
 
         // build and compile our shader program, you can name your shader files however you like
-        ourShader = shaderOf(this::class, "shaders/A_12", "coordinate-systems")
+        ourShader = shaderOf(this::class, "shaders/a/_14", "camera")
 
 
         //  set up vertex data (and buffer(s)) and configure vertex attributes
@@ -232,6 +249,12 @@ private class CoordinateSystemsMultipleObjects {
         //  render loop
         while (window.shouldNotClose) {
 
+            //  per-frame time logic
+            val currentFrame = glfw.time
+            deltaTime = currentFrame - lastFrame
+            lastFrame = currentFrame
+
+
             //  input
             processInput(window)
 
@@ -247,12 +270,13 @@ private class CoordinateSystemsMultipleObjects {
 
             usingProgram(ourShader) {
 
-                //  create transformations
-                val view = glm.translate(Mat4(), 0.0f, 0.0f, -3.0f)
-                val projection = glm.perspective(45.0f.rad, 800.0f / 600.0f, 0.1f, 100.0f)
-                //  retrieve the matrix uniform locations
-                "view".location.mat4 = view
+                // pass projection matrix to shader (note that in this case it could change every frame)
+                val projection = glm.perspective(camera.zoom.rad, 800.0f / 600.0f, 0.1f, 100.0f)
                 "projection".location.mat4 = projection
+
+                // camera/view transformation
+                val view = camera.viewMatrix
+                "view".location.mat4 = view
 
                 // render boxes
                 glBindVertexArray(vao)
@@ -293,6 +317,17 @@ private class CoordinateSystemsMultipleObjects {
 
         if (window.pressed(GLFW_KEY_ESCAPE))
             window.shouldClose = true
+
+        if (window.pressed(GLFW_KEY_W))
+            camera.processKeyboard(Forward, deltaTime)
+        if (window.pressed(GLFW_KEY_S))
+            camera.processKeyboard(Backward, deltaTime)
+        if (window.pressed(GLFW_KEY_A))
+            camera.processKeyboard(Left, deltaTime)
+        if (window.pressed(GLFW_KEY_D))
+            camera.processKeyboard(Right, deltaTime)
+
+        // TODO up/down?
     }
 
     /** glfw: whenever the window size changed (by OS or user resize) this callback function executes   */
@@ -302,4 +337,28 @@ private class CoordinateSystemsMultipleObjects {
             larger than specified on retina displays.     */
         glViewport(0, 0, width, height)
     }
+
+    /** glfw: whenever the mouse moves, this callback is called */
+    fun mouse_callback(xpos: Double, ypos: Double) {
+
+        if (firstMouse) {
+            lastX = xpos
+            lastY = ypos
+            firstMouse = false
+        }
+
+        var xoffset = xpos - lastX
+        var yoffset = lastY - ypos // reversed since y-coordinates go from bottom to top
+        lastX = xpos
+        lastY = ypos
+
+        val sensitivity = 0.1f // change this value to your liking
+        xoffset *= sensitivity
+        yoffset *= sensitivity
+
+        camera.processMouseMovement(xoffset.f, yoffset.f)
+    }
+
+    /** glfw: whenever the mouse scroll wheel scrolls, this callback is called  */
+    fun scroll_callback(xOffset: Double, yOffset: Double) = camera.processMouseScroll(yOffset.f)
 }

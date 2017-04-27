@@ -1,4 +1,4 @@
-package learnOpenGL.A_gettingStarted
+package learnOpenGL.a_gettingStarted
 
 /**
  * Created by GBarbieri on 25.04.2017.
@@ -105,7 +105,7 @@ private class CoordinateSystems {
 
 
         // build and compile our shader program, you can name your shader files however you like
-        ourShader = shaderOf(this::class, "shaders/A_11", "coordinate-systems")
+        ourShader = shaderOf(this::class, "shaders/a/_11", "coordinate-systems")
 
 
         //  set up vertex data (and buffer(s)) and configure vertex attributes
