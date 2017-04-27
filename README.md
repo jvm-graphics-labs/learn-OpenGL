@@ -29,6 +29,7 @@ Status:
   - [x] 14, Camera Circle
   - [x] 15, Camera Keyboard Dt
   - [x] 16, Camera Mouse Zoom
+  - [x] 17, Camera Class
 - [ ] Chapter 2, Lighting
 - [ ] Chapter 3, Model Loading
 - [ ] Chapter 4, Advanced OpenGL
