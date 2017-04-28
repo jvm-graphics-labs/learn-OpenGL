@@ -23,6 +23,7 @@ import uno.gln.glBindVertexArray
 import uno.gln.glDrawElements
 import uno.gln.glVertexAttribPointer
 import uno.gln.usingProgram
+import uno.glsl.Program
 
 fun main(args: Array<String>) {
 
@@ -37,7 +38,7 @@ private class TexturesCombined {
 
     val window: GlfwWindow
 
-    val ourShader: Int
+    val program: Int
 
     object Buffer {
         val Vertex = 0
@@ -105,7 +106,7 @@ private class TexturesCombined {
 
 
         // build and compile our shader program, you can name your shader files however you like
-        ourShader = shaderOf(this::class, "shaders/a/_09", "texture")
+        program = ProgramA("shaders/a/_09", "texture").name
 
 
         //  set up vertex data (and buffer(s)) and configure vertex attributes
@@ -125,8 +126,8 @@ private class TexturesCombined {
         glVertexAttribPointer(semantic.attr.POSITION, Vec3.length, GL_FLOAT, false, Vec3.size + Vec2.size, 0)
         glEnableVertexAttribArray(semantic.attr.POSITION)
         // texture coord attribute
-        glVertexAttribPointer(semantic.attr.TEXCOORD, Vec2.length, GL_FLOAT, false, Vec3.size + Vec2.size, Vec3.size)
-        glEnableVertexAttribArray(semantic.attr.TEXCOORD)
+        glVertexAttribPointer(semantic.attr.TEX_COORD, Vec2.length, GL_FLOAT, false, Vec3.size + Vec2.size, Vec3.size)
+        glEnableVertexAttribArray(semantic.attr.TEX_COORD)
 
 
         // load and create a texture
@@ -173,18 +174,21 @@ private class TexturesCombined {
             Modifying other VAOs requires a call to glBindVertexArray anyways so we generally don't unbind VAOs (nor VBOs)
             when it's not directly necessary.   */
         //glBindVertexArray()
+    }
 
-
-        /*  Tell opengl for each sampler to which texture unit it belongs to (only has to be done once)
+    inner class ProgramA(root: String, shader: String) : Program(TexturesCombined::class.java, root, "$shader.vert", "$shader.frag") {
+        init {
+            /*  Tell opengl for each sampler to which texture unit it belongs to (only has to be done once)
             Code passed to usingProgram() {..] is executed using the given program, which at the end gets unbound   */
-        usingProgram(ourShader) {
+            usingProgram(name) {
 
-            // either set it manually like so:
-            val textureA_location = glGetUniformLocation(ourShader, "textureA")
-            glUniform1i(textureA_location, semantic.sampler.DIFFUSE_A)
+                // either set it manually like so:
+                val textureA_location = glGetUniformLocation(name, "textureA")
+                glUniform1i(textureA_location, semantic.sampler.DIFFUSE_A)
 
-            // or set it via glNext
-            "textureB".location.int = semantic.sampler.DIFFUSE_B
+                // or set it via glNext
+                "textureB".location.int = semantic.sampler.DIFFUSE_B
+            }
         }
     }
 
@@ -207,7 +211,7 @@ private class TexturesCombined {
             glBindTexture(GL_TEXTURE_2D, textures[Texture.B])
 
             // render container
-            glUseProgram(ourShader)
+            glUseProgram(program)
             glBindVertexArray(vao)
             glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT)
 

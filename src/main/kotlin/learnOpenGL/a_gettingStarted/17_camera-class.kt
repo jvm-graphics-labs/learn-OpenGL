@@ -27,6 +27,8 @@ import uno.glf.semantic
 import uno.gln.*
 import learnOpenGL.common.Camera.Movement.*
 import learnOpenGL.common.GlfwWindow.Cursor.Disabled
+import org.lwjgl.opengl.GL20.glGetUniformLocation
+import uno.glsl.Program
 
 
 fun main(args: Array<String>) {
@@ -42,7 +44,7 @@ private class CameraClass {
 
     val window: GlfwWindow
 
-    val ourShader: Int
+    val program: ProgramA
 
     val vbo = intBufferBig(1)
     val vao = intBufferBig(1)
@@ -167,7 +169,7 @@ private class CameraClass {
 
 
         // build and compile our shader program, you can name your shader files however you like
-        ourShader = shaderOf(this::class, "shaders/a/_14", "camera")
+        program = ProgramA("shaders/a/_14", "camera")
 
 
         //  set up vertex data (and buffer(s)) and configure vertex attributes
@@ -184,8 +186,8 @@ private class CameraClass {
         glVertexAttribPointer(semantic.attr.POSITION, Vec3.length, GL_FLOAT, false, Vec3.size + Vec2.size, 0)
         glEnableVertexAttribArray(semantic.attr.POSITION)
         // texture coord attribute
-        glVertexAttribPointer(semantic.attr.TEXCOORD, Vec2.length, GL_FLOAT, false, Vec3.size + Vec2.size, Vec3.size)
-        glEnableVertexAttribArray(semantic.attr.TEXCOORD)
+        glVertexAttribPointer(semantic.attr.TEX_COORD, Vec2.length, GL_FLOAT, false, Vec3.size + Vec2.size, Vec3.size)
+        glEnableVertexAttribArray(semantic.attr.TEX_COORD)
 
 
         // load and create a texture
@@ -233,14 +235,21 @@ private class CameraClass {
             Modifying other VAOs requires a call to glBindVertexArray anyways so we generally don't unbind VAOs (nor VBOs)
             when it's not directly necessary.   */
         //glBindVertexArray()
+    }
 
+    inner class ProgramA(root: String, shader: String) : Program(CameraClass::class.java, root, "$shader.vert", "$shader.frag") {
 
-        /*  Tell opengl for each sampler to which texture unit it belongs to (only has to be done once)
+        val model = glGetUniformLocation(name, "model")
+        val view = glGetUniformLocation(name, "view")
+        val proj = glGetUniformLocation(name, "projection")
+
+        init {
+            /*  Tell opengl for each sampler to which texture unit it belongs to (only has to be done once)
             Code passed to usingProgram() {..] is executed using the given program, which at the end gets unbound   */
-        usingProgram(ourShader) {
-
-            "textureA".location.int = semantic.sampler.DIFFUSE_A
-            "textureB".location.int = semantic.sampler.DIFFUSE_B
+            usingProgram(name) {
+                "textureA".location.int = semantic.sampler.DIFFUSE_A
+                "textureB".location.int = semantic.sampler.DIFFUSE_B
+            }
         }
     }
 
@@ -268,15 +277,15 @@ private class CameraClass {
             glActiveTexture(GL_TEXTURE0 + semantic.sampler.DIFFUSE_B)
             glBindTexture(GL_TEXTURE_2D, textures[Texture.B])
 
-            usingProgram(ourShader) {
+            usingProgram(program) {
 
                 // pass projection matrix to shader (note that in this case it could change every frame)
                 val projection = glm.perspective(camera.zoom.rad, 800.0f / 600.0f, 0.1f, 100.0f)
-                "projection".location.mat4 = projection
+                program.proj.mat4 = projection
 
                 // camera/view transformation
                 val view = camera.viewMatrix
-                "view".location.mat4 = view
+                program.view.mat4 = view
 
                 // render boxes
                 glBindVertexArray(vao)
@@ -286,7 +295,7 @@ private class CameraClass {
                     val model = Mat4() translate_ vec3
                     val angle = 20.0f * i
                     model.rotate_(angle.rad, 1.0f, 0.3f, 0.5f)
-                    "model".location.mat4 = model
+                    program.model.mat4 = model
 
                     glDrawArrays(GL_TRIANGLES, 36)
                 }

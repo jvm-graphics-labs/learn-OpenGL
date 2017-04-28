@@ -1,41 +1,44 @@
 package learnOpenGL.b_lighting
 
 /**
- * Created by GBarbieri on 27.04.2017.
+ * Created by GBarbieri on 28.04.2017.
  */
 
-import glm.*
+import glm.f
+import glm.glm
+import glm.glm.sin
 import glm.mat4x4.Mat4
+import glm.rad
 import glm.vec3.Vec3
-import learnOpenGL.common.*
+import learnOpenGL.common.Camera
+import learnOpenGL.common.Camera.Movement.*
+import learnOpenGL.common.GlfwWindow
+import learnOpenGL.common.GlfwWindow.Cursor.Disabled
+import learnOpenGL.common.glfw
 import org.lwjgl.glfw.GLFW.*
 import org.lwjgl.opengl.GL
 import org.lwjgl.opengl.GL11.*
 import org.lwjgl.opengl.GL15.*
+import org.lwjgl.opengl.GL20.*
 import org.lwjgl.opengl.GL30.*
 import uno.buffer.destroyBuffers
 import uno.buffer.floatBufferOf
 import uno.buffer.intBufferBig
-import uno.gln.*
-import learnOpenGL.common.Camera.Movement.*
-import learnOpenGL.common.GlfwWindow.Cursor.Disabled
-import org.lwjgl.opengl.GL20.*
 import uno.glf.glf
+import uno.gln.*
 import uno.glsl.Program
-import org.lwjgl.opengl.GL11.glClear
-import org.lwjgl.opengl.GL11.glClearColor
 
 
 fun main(args: Array<String>) {
 
-    with(Colors()) {
+    with(Materials()) {
 
         run()
         end()
     }
 }
 
-private class Colors {
+private class Materials {
 
     val window: GlfwWindow
 
@@ -53,47 +56,47 @@ private class Colors {
     val vao = intBufferBig(VA.Max)
 
     val vertices = floatBufferOf(
-            -0.5f, -0.5f, -0.5f,
-            +0.5f, -0.5f, -0.5f,
-            +0.5f, +0.5f, -0.5f,
-            +0.5f, +0.5f, -0.5f,
-            -0.5f, +0.5f, -0.5f,
-            -0.5f, -0.5f, -0.5f,
+            -0.5f, -0.5f, -0.5f, 0.0f, 0.0f, -1.0f,
+            +0.5f, -0.5f, -0.5f, 0.0f, 0.0f, -1.0f,
+            +0.5f, +0.5f, -0.5f, 0.0f, 0.0f, -1.0f,
+            +0.5f, +0.5f, -0.5f, 0.0f, 0.0f, -1.0f,
+            -0.5f, +0.5f, -0.5f, 0.0f, 0.0f, -1.0f,
+            -0.5f, -0.5f, -0.5f, 0.0f, 0.0f, -1.0f,
 
-            -0.5f, -0.5f, +0.5f,
-            +0.5f, -0.5f, +0.5f,
-            +0.5f, +0.5f, +0.5f,
-            +0.5f, +0.5f, +0.5f,
-            -0.5f, +0.5f, +0.5f,
-            -0.5f, -0.5f, +0.5f,
+            -0.5f, -0.5f, +0.5f, 0.0f, 0.0f, 1.0f,
+            +0.5f, -0.5f, +0.5f, 0.0f, 0.0f, 1.0f,
+            +0.5f, +0.5f, +0.5f, 0.0f, 0.0f, 1.0f,
+            +0.5f, +0.5f, +0.5f, 0.0f, 0.0f, 1.0f,
+            -0.5f, +0.5f, +0.5f, 0.0f, 0.0f, 1.0f,
+            -0.5f, -0.5f, +0.5f, 0.0f, 0.0f, 1.0f,
 
-            -0.5f, +0.5f, +0.5f,
-            -0.5f, +0.5f, -0.5f,
-            -0.5f, -0.5f, -0.5f,
-            -0.5f, -0.5f, -0.5f,
-            -0.5f, -0.5f, +0.5f,
-            -0.5f, +0.5f, +0.5f,
+            -0.5f, +0.5f, +0.5f, -1.0f, 0.0f, 0.0f,
+            -0.5f, +0.5f, -0.5f, -1.0f, 0.0f, 0.0f,
+            -0.5f, -0.5f, -0.5f, -1.0f, 0.0f, 0.0f,
+            -0.5f, -0.5f, -0.5f, -1.0f, 0.0f, 0.0f,
+            -0.5f, -0.5f, +0.5f, -1.0f, 0.0f, 0.0f,
+            -0.5f, +0.5f, +0.5f, -1.0f, 0.0f, 0.0f,
 
-            +0.5f, +0.5f, +0.5f,
-            +0.5f, +0.5f, -0.5f,
-            +0.5f, -0.5f, -0.5f,
-            +0.5f, -0.5f, -0.5f,
-            +0.5f, -0.5f, +0.5f,
-            +0.5f, 0.5f, +0.5f,
+            +0.5f, +0.5f, +0.5f, 1.0f, 0.0f, 0.0f,
+            +0.5f, +0.5f, -0.5f, 1.0f, 0.0f, 0.0f,
+            +0.5f, -0.5f, -0.5f, 1.0f, 0.0f, 0.0f,
+            +0.5f, -0.5f, -0.5f, 1.0f, 0.0f, 0.0f,
+            +0.5f, -0.5f, +0.5f, 1.0f, 0.0f, 0.0f,
+            +0.5f, +0.5f, +0.5f, 1.0f, 0.0f, 0.0f,
 
-            -0.5f, -0.5f, -0.5f,
-            +0.5f, -0.5f, -0.5f,
-            +0.5f, -0.5f, +0.5f,
-            +0.5f, -0.5f, +0.5f,
-            -0.5f, -0.5f, +0.5f,
-            -0.5f, -0.5f, -0.5f,
+            -0.5f, -0.5f, -0.5f, 0.0f, -1.0f, 0.0f,
+            +0.5f, -0.5f, -0.5f, 0.0f, -1.0f, 0.0f,
+            +0.5f, -0.5f, +0.5f, 0.0f, -1.0f, 0.0f,
+            +0.5f, -0.5f, +0.5f, 0.0f, -1.0f, 0.0f,
+            -0.5f, -0.5f, +0.5f, 0.0f, -1.0f, 0.0f,
+            -0.5f, -0.5f, -0.5f, 0.0f, -1.0f, 0.0f,
 
-            -0.5f, +0.5f, -0.5f,
-            +0.5f, +0.5f, -0.5f,
-            +0.5f, +0.5f, +0.5f,
-            +0.5f, +0.5f, +0.5f,
-            -0.5f, +0.5f, +0.5f,
-            -0.5f, +0.5f, -0.5f)
+            -0.5f, +0.5f, -0.5f, 0.0f, 1.0f, 0.0f,
+            +0.5f, +0.5f, -0.5f, 0.0f, 1.0f, 0.0f,
+            +0.5f, +0.5f, +0.5f, 0.0f, 1.0f, 0.0f,
+            +0.5f, +0.5f, +0.5f, 0.0f, 1.0f, 0.0f,
+            -0.5f, +0.5f, +0.5f, 0.0f, 1.0f, 0.0f,
+            -0.5f, +0.5f, -0.5f, 0.0f, 1.0f, 0.0f)
 
     // camera
     val camera = Camera(position = Vec3(0.0f, 0.0f, 3.0f))
@@ -132,9 +135,9 @@ private class Colors {
 
             show()   // Make the window visible
 
-            framebufferSizeCallback = this@Colors::framebuffer_size_callback
-            cursorPosCallback = this@Colors::mouse_callback
-            scrollCallback = this@Colors::scroll_callback
+            framebufferSizeCallback = this@Materials::framebuffer_size_callback
+            cursorPosCallback = this@Materials::mouse_callback
+            scrollCallback = this@Materials::scroll_callback
 
             // tell GLFW to capture our mouse
             cursor = Disabled
@@ -151,7 +154,7 @@ private class Colors {
 
 
         // build and compile our shader program
-        lighting = Lighting("shaders/b/_01", "colors")
+        lighting = Lighting("shaders/b/_04", "materials")
         lamp = Lamp("shaders/b/_01", "lamp")
 
 
@@ -165,27 +168,36 @@ private class Colors {
 
         glBindVertexArray(vao[VA.Cube])
 
-        // position attribute
-        glVertexAttribPointer(glf.pos3)
-        glEnableVertexAttribArray(glf.pos3)
+        glVertexAttribPointer(glf.pos3_nor3)
+        glEnableVertexAttribArray(glf.pos3_nor3)
+
+        glVertexAttribPointer(glf.pos3_nor3[1])
+        glEnableVertexAttribArray(glf.pos3_nor3[1])
 
         // second, configure the light's VAO (VBO stays the same; the vertices are the same for the light object which is also a 3D cube)
         glBindVertexArray(vao[VA.Light])
 
-        // we only need to bind to the VBO (to link it with glVertexAttribPointer), no need to fill it; the VBO's data already contains all we need (it's already bound, but we do it again for educational purposes)
         glBindBuffer(GL_ARRAY_BUFFER, vbo)
 
-        glVertexAttribPointer(glf.pos3)
-        glEnableVertexAttribArray(glf.pos3)
+        // note that we update the lamp's position attribute's stride to reflect the updated buffer data
+        glVertexAttribPointer(glf.pos3_nor3)
+        glEnableVertexAttribArray(glf.pos3_nor3)
     }
 
     inner class Lighting(root: String, shader: String) : Lamp(root, shader) {
 
-        val objCol = glGetUniformLocation(name, "objectColor")
-        val lgtCol = glGetUniformLocation(name, "lightColor")
+        val lgtPos = glGetUniformLocation(name, "lightPos")
+        val viewPos = glGetUniformLocation(name, "viewPos")
+        val light = Light()
+
+        inner class Light {
+            val ambient = glGetUniformLocation(name, "light.ambient")
+            val diffuse = glGetUniformLocation(name, "light.diffuse")
+            val specular = glGetUniformLocation(name, "light.specular")
+        }
     }
 
-    inner open class Lamp(root: String, shader: String) : Program(Colors::class.java, root, "$shader.vert", "$shader.frag") {
+    inner open class Lamp(root: String, shader: String) : Program(Materials::class.java, root, "$shader.vert", "$shader.frag") {
 
         val model = glGetUniformLocation(name, "model")
         val view = glGetUniformLocation(name, "view")
@@ -214,8 +226,18 @@ private class Colors {
             // be sure to activate shader when setting uniforms/drawing objects
             glUseProgram(lighting.name)
 
-            glUniform(lighting.objCol, 1.0f, 0.5f, 0.31f)
-            glUniform(lighting.lgtCol, 1.0f, 1.0f, 1.0f)
+            // light properties
+            glUniform(lighting.lgtPos, lightPos)
+            glUniform(lighting.viewPos, camera.position)
+            val lightColor = Vec3(
+                    x = sin(glfw.time * 2.0f),
+                    y = sin(glfw.time * 0.7f),
+                    z = sin(glfw.time * 1.3f))
+            val diffuseColor = lightColor * Vec3(0.5f)  // decrease the influence
+            val ambientColor = diffuseColor * Vec3(0.2f)    // low influence
+            glUniform(lighting.light.ambient, ambientColor)
+            glUniform(lighting.light.diffuse, diffuseColor)
+            glUniform(lighting.light.specular, 1.0f, 1.0f, 1.0f)
 
             // view/projection transformations
             val projection = glm.perspective(camera.zoom.rad, 800.0f / 600.0f, 0.1f, 100.0f)
@@ -224,7 +246,7 @@ private class Colors {
             glUniform(lighting.view, view)
 
             // world transformation
-            var model = Mat4()
+            val model = Mat4()
             glUniform(lighting.model, model)
 
             // render the cube
@@ -233,13 +255,13 @@ private class Colors {
 
 
             // also draw the lamp object
-            glUseProgram(lamp)
+            glUseProgram(lamp.name)
 
             glUniform(lamp.proj, projection)
             glUniform(lamp.view, view)
-            model = model
-                    .translate(lightPos)
-                    .scale(0.2f) // a smaller cube
+            model
+                    .translate_(lightPos)
+                    .scale_(0.2f) // a smaller cube
             glUniform(lamp.model, model)
 
             glBindVertexArray(vao[VA.Light])

@@ -16,12 +16,16 @@ import org.lwjgl.opengl.GL12.GL_BGR
 import org.lwjgl.opengl.GL13.GL_TEXTURE0
 import org.lwjgl.opengl.GL13.glActiveTexture
 import org.lwjgl.opengl.GL15.*
+import org.lwjgl.opengl.GL20
 import org.lwjgl.opengl.GL20.glEnableVertexAttribArray
 import org.lwjgl.opengl.GL20.glGetUniformLocation
 import org.lwjgl.opengl.GL30.*
 import uno.buffer.*
 import uno.glf.semantic
 import uno.gln.*
+import uno.gln.ProgramUse.int
+import uno.gln.ProgramUse.location
+import uno.glsl.Program
 
 fun main(args: Array<String>) {
 
@@ -36,7 +40,7 @@ private class Transformations {
 
     val window: GlfwWindow
 
-    val ourShader: Int
+    val program: ProgramA
 
     object Buffer {
         val Vertex = 0
@@ -104,7 +108,7 @@ private class Transformations {
 
 
         // build and compile our shader program, you can name your shader files however you like
-        ourShader = shaderOf(this::class, "shaders/a/_10", "transform")
+        program = ProgramA("shaders/a/_10", "transform")
 
 
         //  set up vertex data (and buffer(s)) and configure vertex attributes
@@ -124,8 +128,8 @@ private class Transformations {
         glVertexAttribPointer(semantic.attr.POSITION, Vec3.length, GL_FLOAT, false, Vec3.size + Vec2.size, 0)
         glEnableVertexAttribArray(semantic.attr.POSITION)
         // texture coord attribute
-        glVertexAttribPointer(semantic.attr.TEXCOORD, Vec2.length, GL_FLOAT, false, Vec3.size + Vec2.size, Vec3.size)
-        glEnableVertexAttribArray(semantic.attr.TEXCOORD)
+        glVertexAttribPointer(semantic.attr.TEX_COORD, Vec2.length, GL_FLOAT, false, Vec3.size + Vec2.size, Vec3.size)
+        glEnableVertexAttribArray(semantic.attr.TEX_COORD)
 
 
         // load and create a texture
@@ -175,12 +179,19 @@ private class Transformations {
         //glBindVertexArray()
 
 
-        /*  Tell opengl for each sampler to which texture unit it belongs to (only has to be done once)
-            Code passed to usingProgram() {..] is executed using the given program, which at the end gets unbound   */
-        usingProgram(ourShader) {
+    }
 
-            "textureA".location.int = semantic.sampler.DIFFUSE_A
-            "textureB".location.int = semantic.sampler.DIFFUSE_B
+    inner class ProgramA(root: String, shader: String) : Program(Transformations::class.java, root, "$shader.vert", "$shader.frag") {
+
+        val transform = glGetUniformLocation(name, "transform") // get matrix's uniform location
+
+        init {
+            /*  Tell opengl for each sampler to which texture unit it belongs to (only has to be done once)
+            Code passed to usingProgram() {..] is executed using the given program, which at the end gets unbound   */
+            usingProgram(name) {
+                "textureA".location.int = semantic.sampler.DIFFUSE_A
+                "textureB".location.int = semantic.sampler.DIFFUSE_B
+            }
         }
     }
 
@@ -207,18 +218,19 @@ private class Transformations {
                     .translate(0.5f, -0.5f, 0.0f)
                     .rotate(glfw.time, 0.0f, 0.0f, 1.0f)
 
-            usingProgram(ourShader) {
+            glUseProgram(program)
 
-                // get matrix's uniform location and set matrix
-                val transformLoc = glGetUniformLocation(ourShader, "transform")
-                glUniformMatrix4f(transformLoc, transform)
-                // you may use instead this
-                // "transform".location.mat4 = transform
+            // set matrix
+            glUniform(program.transform, transform)
+            /*  you may use also use
+                "transform".location.mat4 = transform
+                or
+                program.transform.mat4 = transform
+             */
 
-                //  render container
-                glBindVertexArray(vao)
-                glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT)
-            }
+            //  render container
+            glBindVertexArray(vao)
+            glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT)
 
             //  glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
             window.swapBuffers()

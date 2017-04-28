@@ -23,6 +23,7 @@ import uno.gln.glBindBuffer
 import uno.gln.glBindVertexArray
 import uno.gln.glDrawArrays
 import uno.gln.glVertexAttribPointer
+import uno.glsl.Program
 
 fun main(args: Array<String>) {
 
@@ -37,7 +38,7 @@ private class ShadersClass {
 
     val window: GlfwWindow
 
-    val ourShader: Shader
+    val program: Int
 
     val vbo = intBufferBig(1)
     val vao = intBufferBig(1)
@@ -82,8 +83,8 @@ private class ShadersClass {
         GL.createCapabilities()
 
 
-        // build and compile our shader program
-        ourShader = Shader("shaders/a/_07", "shader") // you can name your shader files however you like
+        // build and compile our shader program, we can simply use it as int for the moment
+        program = ProgramA("shaders/a/_07", "shader").name
 
 
         //  set up vertex data (and buffer(s)) and configure vertex attributes
@@ -108,6 +109,8 @@ private class ShadersClass {
         //glBindVertexArray()
     }
 
+    class ProgramA(root: String, shader: String) : Program(ShadersClass::class.java, root, "$shader.vert", "$shader.frag")
+
     fun run() {
 
         //  render loop
@@ -121,7 +124,7 @@ private class ShadersClass {
             glClear(GL_COLOR_BUFFER_BIT)
 
             // render the triangle
-            ourShader.use()
+            glUseProgram(program)
             glBindVertexArray(vao)
             glDrawArrays(GL_TRIANGLES, 3)
 

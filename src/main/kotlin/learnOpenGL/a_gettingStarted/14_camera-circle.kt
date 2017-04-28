@@ -20,7 +20,9 @@ import org.lwjgl.opengl.GL12.GL_BGR
 import org.lwjgl.opengl.GL13.GL_TEXTURE0
 import org.lwjgl.opengl.GL13.glActiveTexture
 import org.lwjgl.opengl.GL15.*
+import org.lwjgl.opengl.GL20
 import org.lwjgl.opengl.GL20.glEnableVertexAttribArray
+import org.lwjgl.opengl.GL20.glGetUniformLocation
 import org.lwjgl.opengl.GL30.*
 import uno.buffer.destroy
 import uno.buffer.destroyBuffers
@@ -28,6 +30,9 @@ import uno.buffer.floatBufferOf
 import uno.buffer.intBufferBig
 import uno.glf.semantic
 import uno.gln.*
+import uno.gln.ProgramUse.int
+import uno.gln.ProgramUse.location
+import uno.glsl.Program
 
 fun main(args: Array<String>) {
 
@@ -42,7 +47,7 @@ private class CameraCircle {
 
     val window: GlfwWindow
 
-    val ourShader: Int
+    val program: ProgramA
 
     val vbo = intBufferBig(1)
     val vao = intBufferBig(1)
@@ -152,7 +157,7 @@ private class CameraCircle {
 
 
         // build and compile our shader program, you can name your shader files however you like
-        ourShader = shaderOf(this::class, "shaders/a/_14", "camera")
+        program = ProgramA("shaders/a/_14", "camera")
 
 
         //  set up vertex data (and buffer(s)) and configure vertex attributes
@@ -169,8 +174,8 @@ private class CameraCircle {
         glVertexAttribPointer(semantic.attr.POSITION, Vec3.length, GL_FLOAT, false, Vec3.size + Vec2.size, 0)
         glEnableVertexAttribArray(semantic.attr.POSITION)
         // texture coord attribute
-        glVertexAttribPointer(semantic.attr.TEXCOORD, Vec2.length, GL_FLOAT, false, Vec3.size + Vec2.size, Vec3.size)
-        glEnableVertexAttribArray(semantic.attr.TEXCOORD)
+        glVertexAttribPointer(semantic.attr.TEX_COORD, Vec2.length, GL_FLOAT, false, Vec3.size + Vec2.size, Vec3.size)
+        glEnableVertexAttribArray(semantic.attr.TEX_COORD)
 
 
         // load and create a texture
@@ -218,18 +223,23 @@ private class CameraCircle {
             Modifying other VAOs requires a call to glBindVertexArray anyways so we generally don't unbind VAOs (nor VBOs)
             when it's not directly necessary.   */
         //glBindVertexArray()
+    }
 
+    inner class ProgramA(root: String, shader: String) : Program(CameraCircle::class.java, root, "$shader.vert", "$shader.frag") {
 
-        /*  Tell opengl for each sampler to which texture unit it belongs to (only has to be done once)
+        val model = glGetUniformLocation(name, "model")
+        val view = glGetUniformLocation(name, "view")
+
+        init {
+            /*  Tell opengl for each sampler to which texture unit it belongs to (only has to be done once)
             Code passed to usingProgram() {..] is executed using the given program, which at the end gets unbound   */
-        usingProgram(ourShader) {
+            usingProgram(name) {
+                "textureA".location.int = semantic.sampler.DIFFUSE_A
+                "textureB".location.int = semantic.sampler.DIFFUSE_B
 
-            "textureA".location.int = semantic.sampler.DIFFUSE_A
-            "textureB".location.int = semantic.sampler.DIFFUSE_B
-
-            // pass projection matrix to shader (as projection matrix rarely changes there's no need to do this per frame)
-            val projection = glm.perspective(45.0f.rad, 800.0f / 600.0f, 0.1f, 100.0f)
-            "projection".location.mat4 = projection
+                // pass projection matrix to shader (as projection matrix rarely changes there's no need to do this per frame)
+                "projection".location.mat4 = glm.perspective(45.0f.rad, 800.0f / 600.0f, 0.1f, 100.0f)
+            }
         }
     }
 
@@ -251,14 +261,14 @@ private class CameraCircle {
             glActiveTexture(GL_TEXTURE0 + semantic.sampler.DIFFUSE_B)
             glBindTexture(GL_TEXTURE_2D, textures[Texture.B])
 
-            usingProgram(ourShader) {
+            usingProgram(program) {
 
                 // camera/view transformation
                 val radius = 10.0f
                 val camX = sin(glfw.time) * radius
                 val camZ = cos(glfw.time) * radius
                 val view = glm.lookAt(Vec3(camX, 0.0f, camZ), Vec3(0.0f), Vec3(0.0f, 1.0f, 0.0f))
-                "view".location.mat4 = view
+                program.view.mat4 = view
 
                 // render boxes
                 glBindVertexArray(vao)
@@ -268,7 +278,7 @@ private class CameraCircle {
                     val model = Mat4() translate_ vec3
                     val angle = 20.0f * i
                     model.rotate_(angle.rad, 1.0f, 0.3f, 0.5f)
-                    "model".location.mat4 = model
+                    program.model.mat4 = model
 
                     glDrawArrays(GL_TRIANGLES, 36)
                 }

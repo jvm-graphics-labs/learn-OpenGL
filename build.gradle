@@ -22,9 +22,8 @@ dependencies {
 
     compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion"
 
-    compile 'com.github.kotlin-graphics:glm:058335f9da130e6ee96e70aeaae97a396acaa92b'
-
-    compile 'com.github.kotlin-graphics:uno-sdk:a0c1cefec9565661c0540ae8ce838600a9c4d559'
+    compile 'com.github.kotlin-graphics:glm:c86a65913cdac916f3a202367b7a27b3495fc688'
+    compile 'com.github.kotlin-graphics:uno-sdk:4b1848ae16f359a485621cfb472d408a199d5d7c'
 
 //    testCompile("io.kotlintest:kotlintest:2.0.0")
 

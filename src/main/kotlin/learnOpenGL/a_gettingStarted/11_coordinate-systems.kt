@@ -23,6 +23,9 @@ import uno.gln.*
 import glm.glm
 import glm.rad
 import org.lwjgl.opengl.GL20.*
+import uno.gln.ProgramUse.int
+import uno.gln.ProgramUse.location
+import uno.glsl.Program
 
 fun main(args: Array<String>) {
 
@@ -37,7 +40,7 @@ private class CoordinateSystems {
 
     val window: GlfwWindow
 
-    val ourShader: Int
+    val program: ProgramA
 
     object Buffer {
         val Vertex = 0
@@ -105,7 +108,7 @@ private class CoordinateSystems {
 
 
         // build and compile our shader program, you can name your shader files however you like
-        ourShader = shaderOf(this::class, "shaders/a/_11", "coordinate-systems")
+        program = ProgramA("shaders/a/_11", "coordinate-systems")
 
 
         //  set up vertex data (and buffer(s)) and configure vertex attributes
@@ -125,8 +128,8 @@ private class CoordinateSystems {
         glVertexAttribPointer(semantic.attr.POSITION, Vec3.length, GL_FLOAT, false, Vec3.size + Vec2.size, 0)
         glEnableVertexAttribArray(semantic.attr.POSITION)
         // texture coord attribute
-        glVertexAttribPointer(semantic.attr.TEXCOORD, Vec2.length, GL_FLOAT, false, Vec3.size + Vec2.size, Vec3.size)
-        glEnableVertexAttribArray(semantic.attr.TEXCOORD)
+        glVertexAttribPointer(semantic.attr.TEX_COORD, Vec2.length, GL_FLOAT, false, Vec3.size + Vec2.size, Vec3.size)
+        glEnableVertexAttribArray(semantic.attr.TEX_COORD)
 
 
         // load and create a texture
@@ -174,14 +177,21 @@ private class CoordinateSystems {
             Modifying other VAOs requires a call to glBindVertexArray anyways so we generally don't unbind VAOs (nor VBOs)
             when it's not directly necessary.   */
         //glBindVertexArray()
+    }
 
+    inner class ProgramA(root: String, shader: String) : Program(CoordinateSystems::class.java, root, "$shader.vert", "$shader.frag") {
 
-        /*  Tell opengl for each sampler to which texture unit it belongs to (only has to be done once)
+        val model = glGetUniformLocation(name, "model")
+        val view = glGetUniformLocation(name, "view")
+        val proj = glGetUniformLocation(name, "projection")
+
+        init {
+            /*  Tell opengl for each sampler to which texture unit it belongs to (only has to be done once)
             Code passed to usingProgram() {..] is executed using the given program, which at the end gets unbound   */
-        usingProgram(ourShader) {
-
-            "textureA".location.int = semantic.sampler.DIFFUSE_A
-            "textureB".location.int = semantic.sampler.DIFFUSE_B
+            usingProgram(name) {
+                "textureA".location.int = semantic.sampler.DIFFUSE_A
+                "textureB".location.int = semantic.sampler.DIFFUSE_B
+            }
         }
     }
 
@@ -203,22 +213,20 @@ private class CoordinateSystems {
             glActiveTexture(GL_TEXTURE0 + semantic.sampler.DIFFUSE_B)
             glBindTexture(GL_TEXTURE_2D, textures[Texture.B])
 
-            usingProgram(ourShader) {
+            usingProgram(program) {
 
                 //  create transformations
                 val model = glm.rotate(Mat4(), -55.0f.rad, 1.0f, 0.0f, 0.0f)
                 val view = glm.translate(Mat4(), 0.0f, 0.0f, -3.0f)
                 val projection = glm.perspective(45.0f.rad, 800.0f / 600.0f, 0.1f, 100.0f)
-                //  retrieve the matrix uniform locations
-                val modelLoc = glGetUniformLocation(ourShader, "model")
-                val viewLoc = glGetUniformLocation(ourShader, "view")
+
                 //  pass them to the shaders (3 different ways)
-                glUniformMatrix4f(modelLoc, model)
-                glUniformMatrix4f(viewLoc, view)
+                glUniformMatrix4fv(program.model, false, model to mat4Buffer)
+                glUniform(program.view, view)
                 /*  note: currently we set the projection matrix each frame, but since the projection matrix rarely
                     changes it's often best practice to set it outside the main loop only once. Best place is the
                     framebuffer size callback   */
-                "projection".location.mat4 = projection
+                program.proj.mat4 = projection
 
                 //  render container
                 glBindVertexArray(vao)

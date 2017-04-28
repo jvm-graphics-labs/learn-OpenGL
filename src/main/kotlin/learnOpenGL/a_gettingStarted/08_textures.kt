@@ -8,10 +8,14 @@ import glm.vec2.Vec2
 import glm.vec3.Vec3
 import learnOpenGL.common.*
 import org.lwjgl.glfw.GLFW.GLFW_KEY_ESCAPE
+import org.lwjgl.opengl.GL
 import org.lwjgl.opengl.GL11.*
 import org.lwjgl.opengl.GL12.GL_BGR
+import org.lwjgl.opengl.GL13
+import org.lwjgl.opengl.GL13.GL_TEXTURE0
+import org.lwjgl.opengl.GL13.glActiveTexture
 import org.lwjgl.opengl.GL15.*
-import org.lwjgl.opengl.GL20.glEnableVertexAttribArray
+import org.lwjgl.opengl.GL20.*
 import org.lwjgl.opengl.GL30.*
 import uno.buffer.*
 import uno.glf.semantic
@@ -19,6 +23,7 @@ import uno.gln.glBindTexture
 import uno.gln.glBindVertexArray
 import uno.gln.glDrawElements
 import uno.gln.glVertexAttribPointer
+import uno.glsl.Program
 
 fun main(args: Array<String>) {
 
@@ -31,9 +36,9 @@ fun main(args: Array<String>) {
 
 private class Textures {
 
-    val window: learnOpenGL.common.GlfwWindow
+    val window: GlfwWindow
 
-    val ourShader: learnOpenGL.common.Shader
+    val program: Int
 
     object Buffer {
         val Vertex = 0
@@ -41,40 +46,40 @@ private class Textures {
         val Max = 2
     }
 
-    val buffers = uno.buffer.intBufferBig(Buffer.Max)
-    val vao = uno.buffer.intBufferBig(1)
+    val buffers = intBufferBig(Buffer.Max)
+    val vao = intBufferBig(1)
 
-    val vertices = uno.buffer.floatBufferOf(
+    val vertices = floatBufferOf(
             // positions        // texture coords
             +0.5f, +0.5f, 0.0f, 1.0f, 1.0f, // top right
             +0.5f, -0.5f, 0.0f, 1.0f, 0.0f, // bottom right
             -0.5f, -0.5f, 0.0f, 0.0f, 0.0f, // bottom left
             -0.5f, +0.5f, 0.0f, 0.0f, 1.0f  // top left
     )
-    val indices = uno.buffer.intBufferOf(
+    val indices = intBufferOf(
             0, 1, 3, // first triangle
             1, 2, 3  // second triangle
     )
 
-    val texture = uno.buffer.intBufferBig(1)
+    val texture = intBufferBig(1)
 
     init {
 
-        with(learnOpenGL.common.glfw) {
+        with(glfw) {
 
             /*  Initialize GLFW. Most GLFW functions will not work before doing this.
                 It also setups an error callback. The default implementation will print the error message in System.err.    */
-            learnOpenGL.common.glfw.init()
+            glfw.init()
 
             //  Configure GLFW
-            learnOpenGL.common.glfw.windowHint {
+            glfw.windowHint {
                 version = "3.3"
                 profile = "core"
             }
         }
 
         //  glfw window creation
-        window = learnOpenGL.common.GlfwWindow(800, 600, "Textures")
+        window = GlfwWindow(800, 600, "Textures")
 
         with(window) {
 
@@ -88,11 +93,11 @@ private class Textures {
         /* This line is critical for LWJGL's interoperation with GLFW's OpenGL context, or any context that is managed
            externally. LWJGL detects the context that is current in the current thread, creates the GLCapabilities instance
            and makes the OpenGL bindings available for use.    */
-        org.lwjgl.opengl.GL.createCapabilities()
+        GL.createCapabilities()
 
 
         // build and compile our shader program
-        ourShader = learnOpenGL.common.Shader("shaders/a/_08", "texture") // you can name your shader files however you like
+        program = ProgramA("shaders/a/_08", "texture").name
 
 
         //  set up vertex data (and buffer(s)) and configure vertex attributes
@@ -102,18 +107,18 @@ private class Textures {
         //  bind the Vertex Array Object first, then bind and set vertex buffer(s), and then configure vertex attributes(s).
         glBindVertexArray(vao)
 
-        glBindBuffer(GL_ARRAY_BUFFER, buffers[learnOpenGL.a_gettingStarted.Textures.Buffer.Vertex])
+        glBindBuffer(GL_ARRAY_BUFFER, buffers[Buffer.Vertex])
         glBufferData(GL_ARRAY_BUFFER, vertices, GL_STATIC_DRAW)
 
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, buffers[learnOpenGL.a_gettingStarted.Textures.Buffer.Element])
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, buffers[Buffer.Element])
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices, GL_STATIC_DRAW)
 
         //  position attribute
         glVertexAttribPointer(semantic.attr.POSITION, Vec3.length, GL_FLOAT, false, Vec3.size + Vec2.size, 0)
         glEnableVertexAttribArray(uno.glf.semantic.attr.POSITION)
         // texture coord attribute
-        glVertexAttribPointer(semantic.attr.TEXCOORD, Vec2.length, GL_FLOAT, false, Vec3.size + Vec2.size, Vec3.size)
-        glEnableVertexAttribArray(uno.glf.semantic.attr.TEXCOORD)
+        glVertexAttribPointer(semantic.attr.TEX_COORD, Vec2.length, GL_FLOAT, false, Vec3.size + Vec2.size, Vec3.size)
+        glEnableVertexAttribArray(uno.glf.semantic.attr.TEX_COORD)
 
 
         // load and create a texture
@@ -128,10 +133,10 @@ private class Textures {
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
 
         // load image, create texture and generate mipmaps
-        val image = learnOpenGL.common.readImage("textures/container.jpg")
+        val image = readImage("textures/container.jpg")
         val data = image.toByteBuffer()
 
-        learnOpenGL.common.glTexImage2D(GL_TEXTURE_2D, GL_RGB, image.width, image.height, GL_BGR, GL_UNSIGNED_BYTE, data)
+        glTexImage2D(GL_TEXTURE_2D, GL_RGB, image.width, image.height, GL_BGR, GL_UNSIGNED_BYTE, data)
         glGenerateMipmap(GL_TEXTURE_2D)
 
         data.destroy()
@@ -140,6 +145,14 @@ private class Textures {
             Modifying other VAOs requires a call to glBindVertexArray anyways so we generally don't unbind VAOs (nor VBOs)
             when it's not directly necessary.   */
         //glBindVertexArray()
+    }
+
+    class ProgramA(root: String, shader: String) : Program(Textures::class.java, root, "$shader.vert", "$shader.frag") {
+        init {
+            glUniform1i(
+                    glGetUniformLocation(name, "textureA"),
+                    semantic.sampler.DIFFUSE)
+        }
     }
 
     fun run() {
@@ -155,16 +168,17 @@ private class Textures {
             glClear(GL_COLOR_BUFFER_BIT)
 
             // bind Texture
+            glActiveTexture(GL_TEXTURE0 + semantic.sampler.DIFFUSE)
             glBindTexture(GL_TEXTURE_2D, texture)
 
             // render the triangle
-            ourShader.use()
+            glUseProgram(program)
             glBindVertexArray(vao)
             glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT)
 
             //  glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
             window.swapBuffers()
-            learnOpenGL.common.glfw.pollEvents()
+            glfw.pollEvents()
         }
     }
 
@@ -174,15 +188,15 @@ private class Textures {
         glDeleteVertexArrays(vao)
         glDeleteBuffers(buffers)
 
-        uno.buffer.destroyBuffers(vao, buffers, vertices, indices)
+        destroyBuffers(vao, buffers, vertices, indices)
 
         window.dispose()
         //  glfw: terminate, clearing all previously allocated GLFW resources.
-        learnOpenGL.common.glfw.terminate()
+        glfw.terminate()
     }
 
     /** process all input: query GLFW whether relevant keys are pressed/released this frame and react accordingly   */
-    fun processInput(window: learnOpenGL.common.GlfwWindow) {
+    fun processInput(window: GlfwWindow) {
 
         if (window.pressed(GLFW_KEY_ESCAPE))
             window.shouldClose = true
