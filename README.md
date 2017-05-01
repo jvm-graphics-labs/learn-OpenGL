@@ -1,4 +1,4 @@
-# learn-OpenGL
+# learn OpenGL
 
 Kotlin port of the tutorial of Joey De Vries: "Learn OpenGL" ([website](https://learnopengl.com/) and [repository](https://github.com/JoeyDeVries/LearnOpenGL))
 
