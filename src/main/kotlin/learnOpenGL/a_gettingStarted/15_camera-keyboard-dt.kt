@@ -29,6 +29,9 @@ import uno.gln.*
 import glm.vec3.operators.times
 import org.lwjgl.opengl.GL20.glGetUniformLocation
 import uno.glsl.Program
+import org.lwjgl.glfw.GLFW.glfwGetTime
+
+
 
 
 fun main(args: Array<String>) {
@@ -244,7 +247,7 @@ private class CameraKeyboardDt {
                 "textureB".location.int = semantic.sampler.DIFFUSE_B
 
                 // pass projection matrix to shader (as projection matrix rarely changes there's no need to do this per frame)
-                "projection".location.mat4 = glm.perspective(45.0f.rad, 800.0f / 600.0f, 0.1f, 100.0f)
+                "projection".location.mat4 = glm.perspective(45.0f.rad, window.aspect, 0.1f, 100.0f)
             }
         }
     }
@@ -255,11 +258,9 @@ private class CameraKeyboardDt {
         while (window.shouldNotClose) {
 
             // per-frame time logic
-            // --------------------
             val currentFrame = glfw.time
             deltaTime = currentFrame - lastFrame
             lastFrame = currentFrame
-
 
             //  input
             processInput(window)

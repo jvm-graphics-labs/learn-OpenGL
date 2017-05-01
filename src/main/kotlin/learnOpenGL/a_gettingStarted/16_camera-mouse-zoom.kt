@@ -268,11 +268,9 @@ private class CameraMouseZoom {
         while (window.shouldNotClose) {
 
             // per-frame time logic
-            // --------------------
             val currentFrame = glfw.time
             deltaTime = currentFrame - lastFrame
             lastFrame = currentFrame
-
 
             //  input
             processInput(window)
@@ -290,7 +288,7 @@ private class CameraMouseZoom {
             usingProgram(program) {
 
                 // pass projection matrix to shader (note that in this case it could change every frame)
-                program.proj.mat4 = glm.perspective(fov.rad, 800.0f / 600.0f, 0.1f, 100.0f)
+                program.proj.mat4 = glm.perspective(fov.rad, window.aspect, 0.1f, 100.0f)
 
                 // camera/view transformation
                 program.view.mat4 = glm.lookAt(cameraPos, cameraPos + cameraFront, cameraUp)

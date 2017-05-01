@@ -126,7 +126,7 @@ private class BasicLightingSpecular {
         }
 
         //  glfw window creation
-        window = GlfwWindow(800, 600, "Camera Class")
+        window = GlfwWindow(800, 600, "Basic Lighting Specular")
 
         with(window) {
 
@@ -203,11 +203,10 @@ private class BasicLightingSpecular {
         //  render loop
         while (window.shouldNotClose) {
 
-            //  per-frame time logic
+            // per-frame time logic
             val currentFrame = glfw.time
             deltaTime = currentFrame - lastFrame
             lastFrame = currentFrame
-
 
             //  input
             processInput(window)
@@ -218,21 +217,24 @@ private class BasicLightingSpecular {
             glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
 
             // be sure to activate shader when setting uniforms/drawing objects
-            glUseProgram(lighting.name)
+            glUseProgram(lighting)
 
             glUniform(lighting.objCol, 1.0f, 0.5f, 0.31f)
-            glUniform(lighting.lgtCol, 1.0f)
+            /*  we can avoid to write this
+                glUniform(lighting.lgtCol, 1.0f, 1.0f, 1.0f)
+                but we have to specify explicit the dimensionality with 3*/
+            glUniform3(lighting.lgtCol, 1.0f)
             glUniform(lighting.lgtPos, lightPos)
             glUniform(lighting.viewPos, camera.position)
 
             // view/projection transformations
-            val projection = glm.perspective(camera.zoom.rad, 800.0f / 600.0f, 0.1f, 100.0f)
+            val projection = glm.perspective(camera.zoom.rad, window.aspect, 0.1f, 100.0f)
             val view = camera.viewMatrix
             glUniform(lighting.proj, projection)
             glUniform(lighting.view, view)
 
             // world transformation
-            val model = Mat4()
+            var model = Mat4()
             glUniform(lighting.model, model)
 
             // render the cube
@@ -241,13 +243,13 @@ private class BasicLightingSpecular {
 
 
             // also draw the lamp object
-            glUseProgram(lamp.name)
+            glUseProgram(lamp)
 
             glUniform(lamp.proj, projection)
             glUniform(lamp.view, view)
-            model
-                    .translate_(lightPos)
-                    .scale_(0.2f) // a smaller cube
+            model = model
+                    .translate(lightPos)
+                    .scale(0.2f) // a smaller cube
             glUniform(lamp.model, model)
 
             glBindVertexArray(vao[VA.Light])

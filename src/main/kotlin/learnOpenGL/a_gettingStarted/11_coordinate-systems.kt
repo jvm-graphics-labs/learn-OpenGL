@@ -218,7 +218,7 @@ private class CoordinateSystems {
                 //  create transformations
                 val model = glm.rotate(Mat4(), -55.0f.rad, 1.0f, 0.0f, 0.0f)
                 val view = glm.translate(Mat4(), 0.0f, 0.0f, -3.0f)
-                val projection = glm.perspective(45.0f.rad, 800.0f / 600.0f, 0.1f, 100.0f)
+                val projection = glm.perspective(45.0f.rad, window.aspect, 0.1f, 100.0f)
 
                 //  pass them to the shaders (3 different ways)
                 glUniformMatrix4fv(program.model, false, model to mat4Buffer)

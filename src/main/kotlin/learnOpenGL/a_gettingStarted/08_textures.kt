@@ -136,6 +136,7 @@ private class Textures {
         val image = readImage("textures/container.jpg")
         val data = image.toByteBuffer()
 
+        // ByteBuffered images used BRG instead RGB
         glTexImage2D(GL_TEXTURE_2D, GL_RGB, image.width, image.height, GL_BGR, GL_UNSIGNED_BYTE, data)
         glGenerateMipmap(GL_TEXTURE_2D)
 

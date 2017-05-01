@@ -4,7 +4,7 @@ apply plugin: 'kotlin'
 
 buildscript {
 
-    ext.kotlinVersion = '1.1.2'
+    ext.kotlinVersion = '1.1.2-2'
 
     repositories {
         mavenCentral()
@@ -22,8 +22,9 @@ dependencies {
 
     compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion"
 
-    compile 'com.github.kotlin-graphics:glm:c86a65913cdac916f3a202367b7a27b3495fc688'
-    compile 'com.github.kotlin-graphics:uno-sdk:4b1848ae16f359a485621cfb472d408a199d5d7c'
+    compile 'com.github.kotlin-graphics:glm:4711d0f44930262d53f4c3b9a799edb4f6a4401d'
+    compile 'com.github.kotlin-graphics:gli:4f94c22fac4a6fad4cf84a8d3a436b2ade10453c'
+    compile 'com.github.kotlin-graphics:uno-sdk:3faa2cb28044564b80e8e2d2b4342a007142a083'
 
 //    testCompile("io.kotlintest:kotlintest:2.0.0")
 

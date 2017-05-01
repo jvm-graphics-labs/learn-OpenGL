@@ -1,13 +1,15 @@
 package learnOpenGL.b_lighting
 
 /**
- * Created by GBarbieri on 28.04.2017.
+ * Created by elect on 29/04/17.
  */
 
+import gli.loadPNG
 import glm.f
 import glm.glm
 import glm.mat4x4.Mat4
 import glm.rad
+import glm.set
 import glm.vec3.Vec3
 import learnOpenGL.common.Camera
 import learnOpenGL.common.Camera.Movement.*
@@ -17,27 +19,30 @@ import learnOpenGL.common.glfw
 import org.lwjgl.glfw.GLFW.*
 import org.lwjgl.opengl.GL
 import org.lwjgl.opengl.GL11.*
+import org.lwjgl.opengl.GL13.GL_TEXTURE0
+import org.lwjgl.opengl.GL13.glActiveTexture
 import org.lwjgl.opengl.GL15.*
-import org.lwjgl.opengl.GL20.*
+import org.lwjgl.opengl.GL20.glGetUniformLocation
 import org.lwjgl.opengl.GL30.*
 import uno.buffer.destroyBuffers
 import uno.buffer.floatBufferOf
 import uno.buffer.intBufferBig
 import uno.glf.glf
+import uno.glf.semantic
 import uno.gln.*
 import uno.glsl.Program
 
 
 fun main(args: Array<String>) {
 
-    with(BasicLightingDiffuse()) {
+    with(LightingMapsDiffuse()) {
 
         run()
         end()
     }
 }
 
-private class BasicLightingDiffuse {
+private class LightingMapsDiffuse {
 
     val window: GlfwWindow
 
@@ -55,47 +60,48 @@ private class BasicLightingDiffuse {
     val vao = intBufferBig(VA.Max)
 
     val vertices = floatBufferOf(
-            -0.5f, -0.5f, -0.5f, 0.0f, 0.0f, -1.0f,
-            +0.5f, -0.5f, -0.5f, 0.0f, 0.0f, -1.0f,
-            +0.5f, +0.5f, -0.5f, 0.0f, 0.0f, -1.0f,
-            +0.5f, +0.5f, -0.5f, 0.0f, 0.0f, -1.0f,
-            -0.5f, +0.5f, -0.5f, 0.0f, 0.0f, -1.0f,
-            -0.5f, -0.5f, -0.5f, 0.0f, 0.0f, -1.0f,
+            // positions         // normals    // texture coords
+            -0.5f, -0.5f, -0.5f, +0.0f, +0.0f, -1.0f, 0.0f, 0.0f,
+            +0.5f, -0.5f, -0.5f, +0.0f, +0.0f, -1.0f, 1.0f, 0.0f,
+            +0.5f, +0.5f, -0.5f, +0.0f, +0.0f, -1.0f, 1.0f, 1.0f,
+            +0.5f, +0.5f, -0.5f, +0.0f, +0.0f, -1.0f, 1.0f, 1.0f,
+            -0.5f, +0.5f, -0.5f, +0.0f, +0.0f, -1.0f, 0.0f, 1.0f,
+            -0.5f, -0.5f, -0.5f, +0.0f, +0.0f, -1.0f, 0.0f, 0.0f,
 
-            -0.5f, -0.5f, +0.5f, 0.0f, 0.0f, 1.0f,
-            +0.5f, -0.5f, +0.5f, 0.0f, 0.0f, 1.0f,
-            +0.5f, +0.5f, +0.5f, 0.0f, 0.0f, 1.0f,
-            +0.5f, +0.5f, +0.5f, 0.0f, 0.0f, 1.0f,
-            -0.5f, +0.5f, +0.5f, 0.0f, 0.0f, 1.0f,
-            -0.5f, -0.5f, +0.5f, 0.0f, 0.0f, 1.0f,
+            -0.5f, -0.5f, +0.5f, +0.0f, +0.0f, +1.0f, 0.0f, 0.0f,
+            +0.5f, -0.5f, +0.5f, +0.0f, +0.0f, +1.0f, 1.0f, 0.0f,
+            +0.5f, +0.5f, +0.5f, +0.0f, +0.0f, +1.0f, 1.0f, 1.0f,
+            +0.5f, +0.5f, +0.5f, +0.0f, +0.0f, +1.0f, 1.0f, 1.0f,
+            -0.5f, +0.5f, +0.5f, +0.0f, +0.0f, +1.0f, 0.0f, 1.0f,
+            -0.5f, -0.5f, +0.5f, +0.0f, +0.0f, +1.0f, 0.0f, 0.0f,
 
-            -0.5f, +0.5f, +0.5f, -1.0f, 0.0f, 0.0f,
-            -0.5f, +0.5f, -0.5f, -1.0f, 0.0f, 0.0f,
-            -0.5f, -0.5f, -0.5f, -1.0f, 0.0f, 0.0f,
-            -0.5f, -0.5f, -0.5f, -1.0f, 0.0f, 0.0f,
-            -0.5f, -0.5f, +0.5f, -1.0f, 0.0f, 0.0f,
-            -0.5f, +0.5f, +0.5f, -1.0f, 0.0f, 0.0f,
+            -0.5f, +0.5f, +0.5f, -1.0f, +0.0f, +0.0f, 1.0f, 0.0f,
+            -0.5f, +0.5f, -0.5f, -1.0f, +0.0f, +0.0f, 1.0f, 1.0f,
+            -0.5f, -0.5f, -0.5f, -1.0f, +0.0f, +0.0f, 0.0f, 1.0f,
+            -0.5f, -0.5f, -0.5f, -1.0f, +0.0f, +0.0f, 0.0f, 1.0f,
+            -0.5f, -0.5f, +0.5f, -1.0f, +0.0f, +0.0f, 0.0f, 0.0f,
+            -0.5f, +0.5f, +0.5f, -1.0f, +0.0f, +0.0f, 1.0f, 0.0f,
 
-            +0.5f, +0.5f, +0.5f, 1.0f, 0.0f, 0.0f,
-            +0.5f, +0.5f, -0.5f, 1.0f, 0.0f, 0.0f,
-            +0.5f, -0.5f, -0.5f, 1.0f, 0.0f, 0.0f,
-            +0.5f, -0.5f, -0.5f, 1.0f, 0.0f, 0.0f,
-            +0.5f, -0.5f, +0.5f, 1.0f, 0.0f, 0.0f,
-            +0.5f, +0.5f, +0.5f, 1.0f, 0.0f, 0.0f,
+            +0.5f, +0.5f, +0.5f, +1.0f, +0.0f, +0.0f, 1.0f, 0.0f,
+            +0.5f, +0.5f, -0.5f, +1.0f, +0.0f, +0.0f, 1.0f, 1.0f,
+            +0.5f, -0.5f, -0.5f, +1.0f, +0.0f, +0.0f, 0.0f, 1.0f,
+            +0.5f, -0.5f, -0.5f, +1.0f, +0.0f, +0.0f, 0.0f, 1.0f,
+            +0.5f, -0.5f, +0.5f, +1.0f, +0.0f, +0.0f, 0.0f, 0.0f,
+            +0.5f, +0.5f, +0.5f, +1.0f, +0.0f, +0.0f, 1.0f, 0.0f,
 
-            -0.5f, -0.5f, -0.5f, 0.0f, -1.0f, 0.0f,
-            +0.5f, -0.5f, -0.5f, 0.0f, -1.0f, 0.0f,
-            +0.5f, -0.5f, +0.5f, 0.0f, -1.0f, 0.0f,
-            +0.5f, -0.5f, +0.5f, 0.0f, -1.0f, 0.0f,
-            -0.5f, -0.5f, +0.5f, 0.0f, -1.0f, 0.0f,
-            -0.5f, -0.5f, -0.5f, 0.0f, -1.0f, 0.0f,
+            -0.5f, -0.5f, -0.5f, +0.0f, -1.0f, +0.0f, 0.0f, 1.0f,
+            +0.5f, -0.5f, -0.5f, +0.0f, -1.0f, +0.0f, 1.0f, 1.0f,
+            +0.5f, -0.5f, +0.5f, +0.0f, -1.0f, +0.0f, 1.0f, 0.0f,
+            +0.5f, -0.5f, +0.5f, +0.0f, -1.0f, +0.0f, 1.0f, 0.0f,
+            -0.5f, -0.5f, +0.5f, +0.0f, -1.0f, +0.0f, 0.0f, 0.0f,
+            -0.5f, -0.5f, -0.5f, +0.0f, -1.0f, +0.0f, 0.0f, 1.0f,
 
-            -0.5f, +0.5f, -0.5f, 0.0f, 1.0f, 0.0f,
-            +0.5f, +0.5f, -0.5f, 0.0f, 1.0f, 0.0f,
-            +0.5f, +0.5f, +0.5f, 0.0f, 1.0f, 0.0f,
-            +0.5f, +0.5f, +0.5f, 0.0f, 1.0f, 0.0f,
-            -0.5f, +0.5f, +0.5f, 0.0f, 1.0f, 0.0f,
-            -0.5f, +0.5f, -0.5f, 0.0f, 1.0f, 0.0f)
+            -0.5f, +0.5f, -0.5f, +0.0f, +1.0f, +0.0f, 0.0f, 1.0f,
+            +0.5f, +0.5f, -0.5f, +0.0f, +1.0f, +0.0f, 1.0f, 1.0f,
+            +0.5f, +0.5f, +0.5f, +0.0f, +1.0f, +0.0f, 1.0f, 0.0f,
+            +0.5f, +0.5f, +0.5f, +0.0f, +1.0f, +0.0f, 1.0f, 0.0f,
+            -0.5f, +0.5f, +0.5f, +0.0f, +1.0f, +0.0f, 0.0f, 0.0f,
+            -0.5f, +0.5f, -0.5f, +0.0f, +1.0f, +0.0f, 0.0f, 1.0f)
 
     // camera
     val camera = Camera(position = Vec3(0.0f, 0.0f, 3.0f))
@@ -109,6 +115,8 @@ private class BasicLightingDiffuse {
 
     // lighting
     val lightPos = Vec3(1.2f, 1.0f, 2.0f)
+
+    val diffuseMap = intBufferBig(1)
 
     init {
 
@@ -126,7 +134,7 @@ private class BasicLightingDiffuse {
         }
 
         //  glfw window creation
-        window = GlfwWindow(800, 600, "Camera Class")
+        window = GlfwWindow(800, 600, "Lighting Maps Diffuse")
 
         with(window) {
 
@@ -134,9 +142,9 @@ private class BasicLightingDiffuse {
 
             show()   // Make the window visible
 
-            framebufferSizeCallback = this@BasicLightingDiffuse::framebuffer_size_callback
-            cursorPosCallback = this@BasicLightingDiffuse::mouse_callback
-            scrollCallback = this@BasicLightingDiffuse::scroll_callback
+            framebufferSizeCallback = this@LightingMapsDiffuse::framebuffer_size_callback
+            cursorPosCallback = this@LightingMapsDiffuse::mouse_callback
+            scrollCallback = this@LightingMapsDiffuse::scroll_callback
 
             // tell GLFW to capture our mouse
             cursor = Disabled
@@ -153,7 +161,7 @@ private class BasicLightingDiffuse {
 
 
         // build and compile our shader program
-        lighting = Lighting("shaders/b/_02", "basic-lighting")
+        lighting = Lighting("shaders/b/_05", "lighting-maps")
         lamp = Lamp("shaders/b/_01", "lamp")
 
 
@@ -167,11 +175,14 @@ private class BasicLightingDiffuse {
 
         glBindVertexArray(vao[VA.Cube])
 
-        glVertexAttribPointer(glf.pos3_nor3)
-        glEnableVertexAttribArray(glf.pos3_nor3)
+        glVertexAttribPointer(glf.pos3_nor3_tc2)
+        glEnableVertexAttribArray(glf.pos3_nor3_tc2)
 
-        glVertexAttribPointer(glf.pos3_nor3[1])
-        glEnableVertexAttribArray(glf.pos3_nor3[1])
+        glVertexAttribPointer(glf.pos3_nor3_tc2[1])
+        glEnableVertexAttribArray(glf.pos3_nor3_tc2[1])
+
+        glVertexAttribPointer(glf.pos3_nor3_tc2[2])
+        glEnableVertexAttribArray(glf.pos3_nor3_tc2[2])
 
         // second, configure the light's VAO (VBO stays the same; the vertices are the same for the light object which is also a 3D cube)
         glBindVertexArray(vao[VA.Light])
@@ -179,22 +190,58 @@ private class BasicLightingDiffuse {
         glBindBuffer(GL_ARRAY_BUFFER, vbo)
 
         // note that we update the lamp's position attribute's stride to reflect the updated buffer data
-        glVertexAttribPointer(glf.pos3_nor3)
-        glEnableVertexAttribArray(glf.pos3_nor3)
+        glVertexAttribPointer(glf.pos3_nor3_tc2)
+        glEnableVertexAttribArray(glf.pos3_nor3_tc2)
+
+        // load textures (we now use a utility function to keep the code more organized)
+        diffuseMap[0] = loadTexture("textures/container2.png")
     }
 
     inner class Lighting(root: String, shader: String) : Lamp(root, shader) {
 
-        val objCol = glGetUniformLocation(name, "objectColor")
-        val lgtCol = glGetUniformLocation(name, "lightColor")
-        val lgtPos = glGetUniformLocation(name, "lightPos")
+        val lgtPos = glGetUniformLocation(name, "light.position")
+        val viewPos = glGetUniformLocation(name, "viewPos")
+        val lgt = Light()
+        val mtl = Material()
+
+        inner class Light {
+            val ambient = glGetUniformLocation(name, "light.ambient")
+            val diffuse = glGetUniformLocation(name, "light.diffuse")
+            val specular = glGetUniformLocation(name, "light.specular")
+        }
+
+        inner class Material {
+            val specular = glGetUniformLocation(name, "material.specular")
+            val shininess = glGetUniformLocation(name, "material.shininess")
+        }
     }
 
-    inner open class Lamp(root: String, shader: String) : Program(BasicLightingDiffuse::class.java, root, "$shader.vert", "$shader.frag") {
+    inner open class Lamp(root: String, shader: String) : Program(LightingMapsDiffuse::class.java, root, "$shader.vert", "$shader.frag") {
 
         val model = glGetUniformLocation(name, "model")
         val view = glGetUniformLocation(name, "view")
         val proj = glGetUniformLocation(name, "projection")
+    }
+
+    fun loadTexture(path: String): Int {
+
+        val textureID = glGenTextures()
+
+        val texture = loadPNG(path)
+        val format = gli.gl.translate(texture.format, texture.swizzles)
+
+        glBindTexture(GL_TEXTURE_2D, textureID)
+        glTexImage2D(format, texture)
+        glGenerateMipmap(GL_TEXTURE_2D)
+
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT)
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT)
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR)
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
+
+        texture.dispose()
+
+        return textureID
     }
 
     fun run() {
@@ -202,11 +249,10 @@ private class BasicLightingDiffuse {
         //  render loop
         while (window.shouldNotClose) {
 
-            //  per-frame time logic
+            // per-frame time logic
             val currentFrame = glfw.time
             deltaTime = currentFrame - lastFrame
             lastFrame = currentFrame
-
 
             //  input
             processInput(window)
@@ -217,34 +263,46 @@ private class BasicLightingDiffuse {
             glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
 
             // be sure to activate shader when setting uniforms/drawing objects
-            glUseProgram(lighting.name)
+            glUseProgram(lighting)
+            glUniform(lighting.lgtPos, lightPos)
+            glUniform(lighting.viewPos, camera.position)
 
-            glUniform3f(lighting.objCol, 1.0f, 0.5f, 0.31f)
-            glUniform3f(lighting.lgtCol, 1.0f)
-            glUniform3f(lighting.lgtPos, lightPos)
+            // light properties
+            glUniform(lighting.lgt.ambient, 0.2f, 0.2f, 0.2f)
+            glUniform(lighting.lgt.diffuse, 0.5f, 0.5f, 0.5f)
+            glUniform3(lighting.lgt.specular, 1.0f)
+
+            // material properties
+            glUniform3(lighting.mtl.specular, 0.5f)
+            glUniform(lighting.mtl.shininess, 64.0f)
 
             // view/projection transformations
-            val projection = glm.perspective(camera.zoom.rad, 800.0f / 600.0f, 0.1f, 100.0f)
+            val projection = glm.perspective(camera.zoom.rad, window.aspect, 0.1f, 100.0f)
             val view = camera.viewMatrix
             glUniform(lighting.proj, projection)
             glUniform(lighting.view, view)
 
             // world transformation
-            val model = Mat4()
+            var model = Mat4()
             glUniform(lighting.model, model)
+
+            // bind diffuse map
+            glActiveTexture(GL_TEXTURE0 + semantic.sampler.DIFFUSE)
+            glBindTexture(GL_TEXTURE_2D, diffuseMap)
 
             // render the cube
             glBindVertexArray(vao[VA.Cube])
             glDrawArrays(GL_TRIANGLES, 36)
 
+
             // also draw the lamp object
-            glUseProgram(lamp.name)
+            glUseProgram(lamp)
 
             glUniform(lamp.proj, projection)
             glUniform(lamp.view, view)
-            model
-                    .translate_(lightPos)
-                    .scale_(0.2f) // a smaller cube
+            model = model
+                    .translate(lightPos)
+                    .scale(0.2f) // a smaller cube
             glUniform(lamp.model, model)
 
             glBindVertexArray(vao[VA.Light])
@@ -261,8 +319,9 @@ private class BasicLightingDiffuse {
         //  optional: de-allocate all resources once they've outlived their purpose:
         glDeleteVertexArrays(vao)
         glDeleteBuffers(vbo)
+        glDeleteTextures(diffuseMap)
 
-        destroyBuffers(vao, vbo, vertices)
+        destroyBuffers(vao, vbo, diffuseMap, vertices)
 
         window.dispose()
         //  glfw: terminate, clearing all previously allocated GLFW resources.

@@ -258,11 +258,10 @@ private class CameraClass {
         //  render loop
         while (window.shouldNotClose) {
 
-            //  per-frame time logic
+            // per-frame time logic
             val currentFrame = glfw.time
             deltaTime = currentFrame - lastFrame
             lastFrame = currentFrame
-
 
             //  input
             processInput(window)

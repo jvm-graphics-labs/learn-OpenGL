@@ -1,5 +1,6 @@
 package learnOpenGL.common
 
+import glm.f
 import glm.vec2.Vec2i
 import org.lwjgl.glfw.Callbacks
 import org.lwjgl.glfw.GLFW.*
@@ -46,6 +47,8 @@ class GlfwWindow(width: Int, height: Int, title: String) {
             glfwGetWindowSize(handle, x, y)
             return Vec2i(x[0], y[0])
         }
+
+    val aspect get() = size.x / size.y.f
 
     fun makeContextCurrent() = glfwMakeContextCurrent(handle)
 

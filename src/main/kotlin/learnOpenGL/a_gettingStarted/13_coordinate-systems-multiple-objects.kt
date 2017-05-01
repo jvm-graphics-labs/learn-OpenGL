@@ -258,7 +258,7 @@ private class CoordinateSystemsMultipleObjects {
 
                 //  create transformations
                 val view = glm.translate(Mat4(), 0.0f, 0.0f, -3.0f)
-                val projection = glm.perspective(45.0f.rad, 800.0f / 600.0f, 0.1f, 100.0f)
+                val projection = glm.perspective(45.0f.rad, window.aspect, 0.1f, 100.0f)
                 //  retrieve the matrix uniform locations
                 program.view.mat4 = view
                 program.proj.mat4 = projection

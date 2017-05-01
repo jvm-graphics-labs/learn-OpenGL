@@ -165,6 +165,7 @@ private class TexturesCombined {
         image = readImage("textures/awesomeface.png").flipY()
         data = image.toByteBuffer()
 
+        // ByteBuffered images used BRGA instead RGBA
         glTexImage2D(GL_TEXTURE_2D, GL_RGB, image.width, image.height, EXTABGR.GL_ABGR_EXT, GL_UNSIGNED_BYTE, data)
         glGenerateMipmap(GL_TEXTURE_2D)
 

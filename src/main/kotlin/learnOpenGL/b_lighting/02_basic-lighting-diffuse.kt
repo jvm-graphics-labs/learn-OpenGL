@@ -6,7 +6,6 @@ package learnOpenGL.b_lighting
 
 import glm.f
 import glm.glm
-import glm.glm.sin
 import glm.mat4x4.Mat4
 import glm.rad
 import glm.vec3.Vec3
@@ -31,14 +30,14 @@ import uno.glsl.Program
 
 fun main(args: Array<String>) {
 
-    with(Materials()) {
+    with(BasicLightingDiffuse()) {
 
         run()
         end()
     }
 }
 
-private class Materials {
+private class BasicLightingDiffuse {
 
     val window: GlfwWindow
 
@@ -127,7 +126,7 @@ private class Materials {
         }
 
         //  glfw window creation
-        window = GlfwWindow(800, 600, "Camera Class")
+        window = GlfwWindow(800, 600, "Basic Lighting Diffuse")
 
         with(window) {
 
@@ -135,9 +134,9 @@ private class Materials {
 
             show()   // Make the window visible
 
-            framebufferSizeCallback = this@Materials::framebuffer_size_callback
-            cursorPosCallback = this@Materials::mouse_callback
-            scrollCallback = this@Materials::scroll_callback
+            framebufferSizeCallback = this@BasicLightingDiffuse::framebuffer_size_callback
+            cursorPosCallback = this@BasicLightingDiffuse::mouse_callback
+            scrollCallback = this@BasicLightingDiffuse::scroll_callback
 
             // tell GLFW to capture our mouse
             cursor = Disabled
@@ -154,7 +153,7 @@ private class Materials {
 
 
         // build and compile our shader program
-        lighting = Lighting("shaders/b/_04", "materials")
+        lighting = Lighting("shaders/b/_02", "basic-lighting")
         lamp = Lamp("shaders/b/_01", "lamp")
 
 
@@ -186,18 +185,12 @@ private class Materials {
 
     inner class Lighting(root: String, shader: String) : Lamp(root, shader) {
 
+        val objCol = glGetUniformLocation(name, "objectColor")
+        val lgtCol = glGetUniformLocation(name, "lightColor")
         val lgtPos = glGetUniformLocation(name, "lightPos")
-        val viewPos = glGetUniformLocation(name, "viewPos")
-        val light = Light()
-
-        inner class Light {
-            val ambient = glGetUniformLocation(name, "light.ambient")
-            val diffuse = glGetUniformLocation(name, "light.diffuse")
-            val specular = glGetUniformLocation(name, "light.specular")
-        }
     }
 
-    inner open class Lamp(root: String, shader: String) : Program(Materials::class.java, root, "$shader.vert", "$shader.frag") {
+    inner open class Lamp(root: String, shader: String) : Program(BasicLightingDiffuse::class.java, root, "$shader.vert", "$shader.frag") {
 
         val model = glGetUniformLocation(name, "model")
         val view = glGetUniformLocation(name, "view")
@@ -209,11 +202,10 @@ private class Materials {
         //  render loop
         while (window.shouldNotClose) {
 
-            //  per-frame time logic
+            // per-frame time logic
             val currentFrame = glfw.time
             deltaTime = currentFrame - lastFrame
             lastFrame = currentFrame
-
 
             //  input
             processInput(window)
@@ -224,44 +216,34 @@ private class Materials {
             glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
 
             // be sure to activate shader when setting uniforms/drawing objects
-            glUseProgram(lighting.name)
+            glUseProgram(lighting)
 
-            // light properties
-            glUniform(lighting.lgtPos, lightPos)
-            glUniform(lighting.viewPos, camera.position)
-            val lightColor = Vec3(
-                    x = sin(glfw.time * 2.0f),
-                    y = sin(glfw.time * 0.7f),
-                    z = sin(glfw.time * 1.3f))
-            val diffuseColor = lightColor * Vec3(0.5f)  // decrease the influence
-            val ambientColor = diffuseColor * Vec3(0.2f)    // low influence
-            glUniform(lighting.light.ambient, ambientColor)
-            glUniform(lighting.light.diffuse, diffuseColor)
-            glUniform(lighting.light.specular, 1.0f, 1.0f, 1.0f)
+            glUniform3f(lighting.objCol, 1.0f, 0.5f, 0.31f)
+            glUniform3f(lighting.lgtCol, 1.0f)
+            glUniform3f(lighting.lgtPos, lightPos)
 
             // view/projection transformations
-            val projection = glm.perspective(camera.zoom.rad, 800.0f / 600.0f, 0.1f, 100.0f)
+            val projection = glm.perspective(camera.zoom.rad, window.aspect, 0.1f, 100.0f)
             val view = camera.viewMatrix
             glUniform(lighting.proj, projection)
             glUniform(lighting.view, view)
 
             // world transformation
-            val model = Mat4()
+            var model = Mat4()
             glUniform(lighting.model, model)
 
             // render the cube
             glBindVertexArray(vao[VA.Cube])
             glDrawArrays(GL_TRIANGLES, 36)
 
-
             // also draw the lamp object
-            glUseProgram(lamp.name)
+            glUseProgram(lamp)
 
             glUniform(lamp.proj, projection)
             glUniform(lamp.view, view)
-            model
-                    .translate_(lightPos)
-                    .scale_(0.2f) // a smaller cube
+            model = model
+                    .translate(lightPos)
+                    .scale(0.2f) // a smaller cube
             glUniform(lamp.model, model)
 
             glBindVertexArray(vao[VA.Light])

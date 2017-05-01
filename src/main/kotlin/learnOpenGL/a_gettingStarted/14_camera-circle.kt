@@ -238,7 +238,7 @@ private class CameraCircle {
                 "textureB".location.int = semantic.sampler.DIFFUSE_B
 
                 // pass projection matrix to shader (as projection matrix rarely changes there's no need to do this per frame)
-                "projection".location.mat4 = glm.perspective(45.0f.rad, 800.0f / 600.0f, 0.1f, 100.0f)
+                "projection".location.mat4 = glm.perspective(45.0f.rad, window.aspect, 0.1f, 100.0f)
             }
         }
     }
