@@ -1,99 +1,50 @@
-package learnOpenGL.b_lighting
+package learnOpenGL.c_modelLoading
 
 /**
- * Created by GBarbieri on 27.04.2017.
+ * Created by GBarbieri on 02.05.2017.
  */
 
+import gli.loadPNG
 import glm.*
 import glm.mat4x4.Mat4
 import glm.vec3.Vec3
-import learnOpenGL.common.*
+import learnOpenGL.common.Camera
+import learnOpenGL.common.Camera.Movement.*
+import learnOpenGL.common.GlfwWindow
+import learnOpenGL.common.GlfwWindow.Cursor.Disabled
+import learnOpenGL.common.Model
+import learnOpenGL.common.glfw
 import org.lwjgl.glfw.GLFW.*
 import org.lwjgl.opengl.GL
 import org.lwjgl.opengl.GL11.*
+import org.lwjgl.opengl.GL13.GL_TEXTURE0
+import org.lwjgl.opengl.GL13.glActiveTexture
 import org.lwjgl.opengl.GL15.*
+import org.lwjgl.opengl.GL20.glGetUniformLocation
 import org.lwjgl.opengl.GL30.*
 import uno.buffer.destroyBuffers
 import uno.buffer.floatBufferOf
 import uno.buffer.intBufferBig
-import uno.gln.*
-import learnOpenGL.common.Camera.Movement.*
-import learnOpenGL.common.GlfwWindow.Cursor.Disabled
-import org.lwjgl.opengl.GL20.*
 import uno.glf.glf
+import uno.glf.semantic
+import uno.gln.*
 import uno.glsl.Program
-import org.lwjgl.opengl.GL11.glClear
-import org.lwjgl.opengl.GL11.glClearColor
 
 
 fun main(args: Array<String>) {
 
-    with(Colors()) {
+    with(ModelLoading()) {
 
         run()
         end()
     }
 }
 
-private class Colors {
+private class ModelLoading {
 
     val window: GlfwWindow
 
-    val lighting: Lighting
-    val lamp: Lamp
-
-    val vbo = intBufferBig(1)
-
-    object VA {
-        val Cube = 0
-        val Light = 1
-        val Max = 2
-    }
-
-    val vao = intBufferBig(VA.Max)
-
-    val vertices = floatBufferOf(
-            -0.5f, -0.5f, -0.5f,
-            +0.5f, -0.5f, -0.5f,
-            +0.5f, +0.5f, -0.5f,
-            +0.5f, +0.5f, -0.5f,
-            -0.5f, +0.5f, -0.5f,
-            -0.5f, -0.5f, -0.5f,
-
-            -0.5f, -0.5f, +0.5f,
-            +0.5f, -0.5f, +0.5f,
-            +0.5f, +0.5f, +0.5f,
-            +0.5f, +0.5f, +0.5f,
-            -0.5f, +0.5f, +0.5f,
-            -0.5f, -0.5f, +0.5f,
-
-            -0.5f, +0.5f, +0.5f,
-            -0.5f, +0.5f, -0.5f,
-            -0.5f, -0.5f, -0.5f,
-            -0.5f, -0.5f, -0.5f,
-            -0.5f, -0.5f, +0.5f,
-            -0.5f, +0.5f, +0.5f,
-
-            +0.5f, +0.5f, +0.5f,
-            +0.5f, +0.5f, -0.5f,
-            +0.5f, -0.5f, -0.5f,
-            +0.5f, -0.5f, -0.5f,
-            +0.5f, -0.5f, +0.5f,
-            +0.5f, 0.5f, +0.5f,
-
-            -0.5f, -0.5f, -0.5f,
-            +0.5f, -0.5f, -0.5f,
-            +0.5f, -0.5f, +0.5f,
-            +0.5f, -0.5f, +0.5f,
-            -0.5f, -0.5f, +0.5f,
-            -0.5f, -0.5f, -0.5f,
-
-            -0.5f, +0.5f, -0.5f,
-            +0.5f, +0.5f, -0.5f,
-            +0.5f, +0.5f, +0.5f,
-            +0.5f, +0.5f, +0.5f,
-            -0.5f, +0.5f, +0.5f,
-            -0.5f, +0.5f, -0.5f)
+    val program: ProgramA
 
     // camera
     val camera = Camera(position = Vec3(0.0f, 0.0f, 3.0f))
@@ -105,8 +56,7 @@ private class Colors {
     var deltaTime = 0.0f    // time between current frame and last frame
     var lastFrame = 0.0f
 
-    // lighting
-    val lightPos = Vec3(1.2f, 1.0f, 2.0f)
+    val model: Model
 
     init {
 
@@ -124,7 +74,7 @@ private class Colors {
         }
 
         //  glfw window creation
-        window = GlfwWindow(800, 600, "Colors")
+        window = GlfwWindow(800, 600, "Multiple Lights")
 
         with(window) {
 
@@ -132,9 +82,9 @@ private class Colors {
 
             show()   // Make the window visible
 
-            framebufferSizeCallback = this@Colors::framebuffer_size_callback
-            cursorPosCallback = this@Colors::mouse_callback
-            scrollCallback = this@Colors::scroll_callback
+            framebufferSizeCallback = this@ModelLoading::framebuffer_size_callback
+            cursorPosCallback = this@ModelLoading::mouse_callback
+            scrollCallback = this@ModelLoading::scroll_callback
 
             // tell GLFW to capture our mouse
             cursor = Disabled
@@ -149,43 +99,14 @@ private class Colors {
         // configure global opengl state
         glEnable(GL_DEPTH_TEST)
 
-
         // build and compile our shader program
-        lighting = Lighting("shaders/b/_01", "colors")
-        lamp = Lamp("shaders/b/_01", "lamp")
+        program = ProgramA("shaders/c/", "model-loading")
 
-
-        glGenVertexArrays(vao)
-
-        // first, configure the cube's VAO (and VBO)
-        glGenBuffers(vbo)
-
-        glBindBuffer(GL_ARRAY_BUFFER, vbo)
-        glBufferData(GL_ARRAY_BUFFER, vertices, GL_STATIC_DRAW)
-
-        glBindVertexArray(vao[VA.Cube])
-
-        // position attribute
-        glVertexAttribPointer(glf.pos3)
-        glEnableVertexAttribArray(glf.pos3)
-
-        // second, configure the light's VAO (VBO stays the same; the vertices are the same for the light object which is also a 3D cube)
-        glBindVertexArray(vao[VA.Light])
-
-        // we only need to bind to the VBO (to link it with glVertexAttribPointer), no need to fill it; the VBO's data already contains all we need (it's already bound, but we do it again for educational purposes)
-        glBindBuffer(GL_ARRAY_BUFFER, vbo)
-
-        glVertexAttribPointer(glf.pos3)
-        glEnableVertexAttribArray(glf.pos3)
+        // load models
+        model = Model("objects/nanosuit/nanosuit.obj")
     }
 
-    inner class Lighting(root: String, shader: String) : Lamp(root, shader) {
-
-        val objCol = glGetUniformLocation(name, "objectColor")
-        val lgtCol = glGetUniformLocation(name, "lightColor")
-    }
-
-    inner open class Lamp(root: String, shader: String) : Program(Colors::class.java, root, "$shader.vert", "$shader.frag") {
+    inner class ProgramA(root: String, shader: String) : Program(ModelLoading::class.java, root, "$shader.vert", "$shader.frag") {
 
         val model = glGetUniformLocation(name, "model")
         val view = glGetUniformLocation(name, "view")
@@ -197,11 +118,10 @@ private class Colors {
         //  render loop
         while (window.shouldNotClose) {
 
-            //  per-frame time logic
+            // per-frame time logic
             val currentFrame = glfw.time
             deltaTime = currentFrame - lastFrame
             lastFrame = currentFrame
-
 
             //  input
             processInput(window)
@@ -213,9 +133,9 @@ private class Colors {
 
             // be sure to activate shader when setting uniforms/drawing objects
             glUseProgram(lighting)
+            glUniform(lighting.viewPos, camera.position)
+            glUniform(lighting.mtl.shininess, 32.0f)
 
-            glUniform(lighting.objCol, 1.0f, 0.5f, 0.31f)
-            glUniform3(lighting.lgtCol, 1.0f)
 
             // view/projection transformations
             val projection = glm.perspective(camera.zoom.rad, window.aspect, 0.1f, 100.0f)
@@ -223,27 +143,41 @@ private class Colors {
             glUniform(lighting.proj, projection)
             glUniform(lighting.view, view)
 
-            // world transformation
-            var model = Mat4()
-            glUniform(lighting.model, model)
+            // bind diffuse map
+            glActiveTexture(GL_TEXTURE0 + semantic.sampler.DIFFUSE)
+            glBindTexture(GL_TEXTURE_2D, textures[Texture.Diffuse])
+            // bind specular map
+            glActiveTexture(GL_TEXTURE0 + semantic.sampler.SPECULAR)
+            glBindTexture(GL_TEXTURE_2D, textures[Texture.Specular])
 
-            // render the cube
+            // render containers
             glBindVertexArray(vao[VA.Cube])
-            glDrawArrays(GL_TRIANGLES, 36)
+            cubePositions.forEachIndexed { i, pos ->
 
+                // calculate the model matrix for each object and pass it to shader before drawing
+                val model = Mat4().translate(pos)
+                val angle = 20.0f * i
+                model.rotate_(angle.rad, 1.0f, 0.3f, 0.5f)
+                glUniform(lighting.model, model)
+
+                glDrawArrays(GL_TRIANGLES, 36)
+            }
 
             // also draw the lamp object
             glUseProgram(lamp)
-
             glUniform(lamp.proj, projection)
             glUniform(lamp.view, view)
-            model = model
-                    .translate(lightPos)
-                    .scale(0.2f) // a smaller cube
-            glUniform(lamp.model, model)
 
+            // we now draw as many light bulbs as we have point lights.
             glBindVertexArray(vao[VA.Light])
-            glDrawArrays(GL_TRIANGLES, 36)
+            pointLightPositions.forEach {
+                val model = Mat4()
+                        .translate(it)
+                        .scale(0.2f) // Make it a smaller cube
+
+                glUniform(lamp.model, model)
+                glDrawArrays(GL_TRIANGLES, 36)
+            }
 
             //  glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
             window.swapBuffers()
@@ -256,8 +190,9 @@ private class Colors {
         //  optional: de-allocate all resources once they've outlived their purpose:
         glDeleteVertexArrays(vao)
         glDeleteBuffers(vbo)
+        glDeleteTextures(textures)
 
-        destroyBuffers(vao, vbo, vertices)
+        destroyBuffers(vao, vbo, textures, vertices)
 
         window.dispose()
         //  glfw: terminate, clearing all previously allocated GLFW resources.

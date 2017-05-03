@@ -1,14 +1,15 @@
 package learnOpenGL.b_lighting
 
 /**
- * Created by GBarbieri on 28.04.2017.
+ * Created by GBarbieri on 02.05.2017.
  */
 
+import gli.loadPNG
 import glm.f
 import glm.glm
-import glm.glm.sin
 import glm.mat4x4.Mat4
 import glm.rad
+import glm.set
 import glm.vec3.Vec3
 import learnOpenGL.common.Camera
 import learnOpenGL.common.Camera.Movement.*
@@ -18,27 +19,30 @@ import learnOpenGL.common.glfw
 import org.lwjgl.glfw.GLFW.*
 import org.lwjgl.opengl.GL
 import org.lwjgl.opengl.GL11.*
+import org.lwjgl.opengl.GL13.GL_TEXTURE0
+import org.lwjgl.opengl.GL13.glActiveTexture
 import org.lwjgl.opengl.GL15.*
-import org.lwjgl.opengl.GL20.*
+import org.lwjgl.opengl.GL20.glGetUniformLocation
 import org.lwjgl.opengl.GL30.*
 import uno.buffer.destroyBuffers
 import uno.buffer.floatBufferOf
 import uno.buffer.intBufferBig
 import uno.glf.glf
+import uno.glf.semantic
 import uno.gln.*
 import uno.glsl.Program
 
 
 fun main(args: Array<String>) {
 
-    with(Materials()) {
+    with(LightCastersPoint()) {
 
         run()
         end()
     }
 }
 
-private class Materials {
+private class LightCastersPoint {
 
     val window: GlfwWindow
 
@@ -56,47 +60,61 @@ private class Materials {
     val vao = intBufferBig(VA.Max)
 
     val vertices = floatBufferOf(
-            -0.5f, -0.5f, -0.5f, 0.0f, 0.0f, -1.0f,
-            +0.5f, -0.5f, -0.5f, 0.0f, 0.0f, -1.0f,
-            +0.5f, +0.5f, -0.5f, 0.0f, 0.0f, -1.0f,
-            +0.5f, +0.5f, -0.5f, 0.0f, 0.0f, -1.0f,
-            -0.5f, +0.5f, -0.5f, 0.0f, 0.0f, -1.0f,
-            -0.5f, -0.5f, -0.5f, 0.0f, 0.0f, -1.0f,
+            // positions         // normals    // texture coords
+            -0.5f, -0.5f, -0.5f, +0.0f, +0.0f, -1.0f, 0.0f, 0.0f,
+            +0.5f, -0.5f, -0.5f, +0.0f, +0.0f, -1.0f, 1.0f, 0.0f,
+            +0.5f, +0.5f, -0.5f, +0.0f, +0.0f, -1.0f, 1.0f, 1.0f,
+            +0.5f, +0.5f, -0.5f, +0.0f, +0.0f, -1.0f, 1.0f, 1.0f,
+            -0.5f, +0.5f, -0.5f, +0.0f, +0.0f, -1.0f, 0.0f, 1.0f,
+            -0.5f, -0.5f, -0.5f, +0.0f, +0.0f, -1.0f, 0.0f, 0.0f,
 
-            -0.5f, -0.5f, +0.5f, 0.0f, 0.0f, 1.0f,
-            +0.5f, -0.5f, +0.5f, 0.0f, 0.0f, 1.0f,
-            +0.5f, +0.5f, +0.5f, 0.0f, 0.0f, 1.0f,
-            +0.5f, +0.5f, +0.5f, 0.0f, 0.0f, 1.0f,
-            -0.5f, +0.5f, +0.5f, 0.0f, 0.0f, 1.0f,
-            -0.5f, -0.5f, +0.5f, 0.0f, 0.0f, 1.0f,
+            -0.5f, -0.5f, +0.5f, +0.0f, +0.0f, +1.0f, 0.0f, 0.0f,
+            +0.5f, -0.5f, +0.5f, +0.0f, +0.0f, +1.0f, 1.0f, 0.0f,
+            +0.5f, +0.5f, +0.5f, +0.0f, +0.0f, +1.0f, 1.0f, 1.0f,
+            +0.5f, +0.5f, +0.5f, +0.0f, +0.0f, +1.0f, 1.0f, 1.0f,
+            -0.5f, +0.5f, +0.5f, +0.0f, +0.0f, +1.0f, 0.0f, 1.0f,
+            -0.5f, -0.5f, +0.5f, +0.0f, +0.0f, +1.0f, 0.0f, 0.0f,
 
-            -0.5f, +0.5f, +0.5f, -1.0f, 0.0f, 0.0f,
-            -0.5f, +0.5f, -0.5f, -1.0f, 0.0f, 0.0f,
-            -0.5f, -0.5f, -0.5f, -1.0f, 0.0f, 0.0f,
-            -0.5f, -0.5f, -0.5f, -1.0f, 0.0f, 0.0f,
-            -0.5f, -0.5f, +0.5f, -1.0f, 0.0f, 0.0f,
-            -0.5f, +0.5f, +0.5f, -1.0f, 0.0f, 0.0f,
+            -0.5f, +0.5f, +0.5f, -1.0f, +0.0f, +0.0f, 1.0f, 0.0f,
+            -0.5f, +0.5f, -0.5f, -1.0f, +0.0f, +0.0f, 1.0f, 1.0f,
+            -0.5f, -0.5f, -0.5f, -1.0f, +0.0f, +0.0f, 0.0f, 1.0f,
+            -0.5f, -0.5f, -0.5f, -1.0f, +0.0f, +0.0f, 0.0f, 1.0f,
+            -0.5f, -0.5f, +0.5f, -1.0f, +0.0f, +0.0f, 0.0f, 0.0f,
+            -0.5f, +0.5f, +0.5f, -1.0f, +0.0f, +0.0f, 1.0f, 0.0f,
 
-            +0.5f, +0.5f, +0.5f, 1.0f, 0.0f, 0.0f,
-            +0.5f, +0.5f, -0.5f, 1.0f, 0.0f, 0.0f,
-            +0.5f, -0.5f, -0.5f, 1.0f, 0.0f, 0.0f,
-            +0.5f, -0.5f, -0.5f, 1.0f, 0.0f, 0.0f,
-            +0.5f, -0.5f, +0.5f, 1.0f, 0.0f, 0.0f,
-            +0.5f, +0.5f, +0.5f, 1.0f, 0.0f, 0.0f,
+            +0.5f, +0.5f, +0.5f, +1.0f, +0.0f, +0.0f, 1.0f, 0.0f,
+            +0.5f, +0.5f, -0.5f, +1.0f, +0.0f, +0.0f, 1.0f, 1.0f,
+            +0.5f, -0.5f, -0.5f, +1.0f, +0.0f, +0.0f, 0.0f, 1.0f,
+            +0.5f, -0.5f, -0.5f, +1.0f, +0.0f, +0.0f, 0.0f, 1.0f,
+            +0.5f, -0.5f, +0.5f, +1.0f, +0.0f, +0.0f, 0.0f, 0.0f,
+            +0.5f, +0.5f, +0.5f, +1.0f, +0.0f, +0.0f, 1.0f, 0.0f,
 
-            -0.5f, -0.5f, -0.5f, 0.0f, -1.0f, 0.0f,
-            +0.5f, -0.5f, -0.5f, 0.0f, -1.0f, 0.0f,
-            +0.5f, -0.5f, +0.5f, 0.0f, -1.0f, 0.0f,
-            +0.5f, -0.5f, +0.5f, 0.0f, -1.0f, 0.0f,
-            -0.5f, -0.5f, +0.5f, 0.0f, -1.0f, 0.0f,
-            -0.5f, -0.5f, -0.5f, 0.0f, -1.0f, 0.0f,
+            -0.5f, -0.5f, -0.5f, +0.0f, -1.0f, +0.0f, 0.0f, 1.0f,
+            +0.5f, -0.5f, -0.5f, +0.0f, -1.0f, +0.0f, 1.0f, 1.0f,
+            +0.5f, -0.5f, +0.5f, +0.0f, -1.0f, +0.0f, 1.0f, 0.0f,
+            +0.5f, -0.5f, +0.5f, +0.0f, -1.0f, +0.0f, 1.0f, 0.0f,
+            -0.5f, -0.5f, +0.5f, +0.0f, -1.0f, +0.0f, 0.0f, 0.0f,
+            -0.5f, -0.5f, -0.5f, +0.0f, -1.0f, +0.0f, 0.0f, 1.0f,
 
-            -0.5f, +0.5f, -0.5f, 0.0f, 1.0f, 0.0f,
-            +0.5f, +0.5f, -0.5f, 0.0f, 1.0f, 0.0f,
-            +0.5f, +0.5f, +0.5f, 0.0f, 1.0f, 0.0f,
-            +0.5f, +0.5f, +0.5f, 0.0f, 1.0f, 0.0f,
-            -0.5f, +0.5f, +0.5f, 0.0f, 1.0f, 0.0f,
-            -0.5f, +0.5f, -0.5f, 0.0f, 1.0f, 0.0f)
+            -0.5f, +0.5f, -0.5f, +0.0f, +1.0f, +0.0f, 0.0f, 1.0f,
+            +0.5f, +0.5f, -0.5f, +0.0f, +1.0f, +0.0f, 1.0f, 1.0f,
+            +0.5f, +0.5f, +0.5f, +0.0f, +1.0f, +0.0f, 1.0f, 0.0f,
+            +0.5f, +0.5f, +0.5f, +0.0f, +1.0f, +0.0f, 1.0f, 0.0f,
+            -0.5f, +0.5f, +0.5f, +0.0f, +1.0f, +0.0f, 0.0f, 0.0f,
+            -0.5f, +0.5f, -0.5f, +0.0f, +1.0f, +0.0f, 0.0f, 1.0f)
+
+    // positions all containers
+    val cubePositions = arrayOf(
+            Vec3(0.0f, 0.0f, 0.0f),
+            Vec3(2.0f, 5.0f, -15.0f),
+            Vec3(-1.5f, -2.2f, -2.5f),
+            Vec3(-3.8f, -2.0f, -12.3f),
+            Vec3(2.4f, -0.4f, -3.5f),
+            Vec3(-1.7f, 3.0f, -7.5f),
+            Vec3(1.3f, -2.0f, -2.5f),
+            Vec3(1.5f, 2.0f, -2.5f),
+            Vec3(1.5f, 0.2f, -1.5f),
+            Vec3(-1.3f, 1.0f, -1.5f))
 
     // camera
     val camera = Camera(position = Vec3(0.0f, 0.0f, 3.0f))
@@ -107,6 +125,14 @@ private class Materials {
 
     var deltaTime = 0.0f    // time between current frame and last frame
     var lastFrame = 0.0f
+
+    object Texture {
+        val Diffuse = 0
+        val Specular = 1
+        val MAX = 2
+    }
+
+    val textures = intBufferBig(Texture.MAX)
 
     // lighting
     val lightPos = Vec3(1.2f, 1.0f, 2.0f)
@@ -127,7 +153,7 @@ private class Materials {
         }
 
         //  glfw window creation
-        window = GlfwWindow(800, 600, "Materials")
+        window = GlfwWindow(800, 600, "Light Caster Point")
 
         with(window) {
 
@@ -135,9 +161,9 @@ private class Materials {
 
             show()   // Make the window visible
 
-            framebufferSizeCallback = this@Materials::framebuffer_size_callback
-            cursorPosCallback = this@Materials::mouse_callback
-            scrollCallback = this@Materials::scroll_callback
+            framebufferSizeCallback = this@LightCastersPoint::framebuffer_size_callback
+            cursorPosCallback = this@LightCastersPoint::mouse_callback
+            scrollCallback = this@LightCastersPoint::scroll_callback
 
             // tell GLFW to capture our mouse
             cursor = Disabled
@@ -154,7 +180,7 @@ private class Materials {
 
 
         // build and compile our shader program
-        lighting = Lighting("shaders/b/_04", "materials")
+        lighting = Lighting("shaders/b/_08", "light-casters")
         lamp = Lamp("shaders/b/_01", "lamp")
 
 
@@ -168,11 +194,14 @@ private class Materials {
 
         glBindVertexArray(vao[VA.Cube])
 
-        glVertexAttribPointer(glf.pos3_nor3)
-        glEnableVertexAttribArray(glf.pos3_nor3)
+        glVertexAttribPointer(glf.pos3_nor3_tc2)
+        glEnableVertexAttribArray(glf.pos3_nor3_tc2)
 
-        glVertexAttribPointer(glf.pos3_nor3[1])
-        glEnableVertexAttribArray(glf.pos3_nor3[1])
+        glVertexAttribPointer(glf.pos3_nor3_tc2[1])
+        glEnableVertexAttribArray(glf.pos3_nor3_tc2[1])
+
+        glVertexAttribPointer(glf.pos3_nor3_tc2[2])
+        glEnableVertexAttribArray(glf.pos3_nor3_tc2[2])
 
         // second, configure the light's VAO (VBO stays the same; the vertices are the same for the light object which is also a 3D cube)
         glBindVertexArray(vao[VA.Light])
@@ -180,8 +209,18 @@ private class Materials {
         glBindBuffer(GL_ARRAY_BUFFER, vbo)
 
         // note that we update the lamp's position attribute's stride to reflect the updated buffer data
-        glVertexAttribPointer(glf.pos3_nor3)
-        glEnableVertexAttribArray(glf.pos3_nor3)
+        glVertexAttribPointer(glf.pos3_nor3_tc2)
+        glEnableVertexAttribArray(glf.pos3_nor3_tc2)
+
+        // load textures (we now use a utility function to keep the code more organized)
+        textures[Texture.Diffuse] = loadTexture("textures/container2.png")
+        textures[Texture.Specular] = loadTexture("textures/container2_specular.png")
+
+        // shader configuration
+        usingProgram(lighting) {
+            "material.diffuse".location.int = semantic.sampler.DIFFUSE
+            "material.specular".location.int = semantic.sampler.SPECULAR
+        }
     }
 
     inner class Lighting(root: String, shader: String) : Lamp(root, shader) {
@@ -195,21 +234,42 @@ private class Materials {
             val ambient = glGetUniformLocation(name, "light.ambient")
             val diffuse = glGetUniformLocation(name, "light.diffuse")
             val specular = glGetUniformLocation(name, "light.specular")
+            val constant = glGetUniformLocation(name, "light.constant")
+            val linear = glGetUniformLocation(name, "light.linear")
+            val quadratic = glGetUniformLocation(name, "light.quadratic")
         }
 
         inner class Material {
-            val ambient = glGetUniformLocation(name, "material.ambient")
-            val diffuse = glGetUniformLocation(name, "material.diffuse")
-            val specular = glGetUniformLocation(name, "material.specular")
             val shininess = glGetUniformLocation(name, "material.shininess")
         }
     }
 
-    inner open class Lamp(root: String, shader: String) : Program(Materials::class.java, root, "$shader.vert", "$shader.frag") {
+    inner open class Lamp(root: String, shader: String) : Program(LightCastersPoint::class.java, root, "$shader.vert", "$shader.frag") {
 
         val model = glGetUniformLocation(name, "model")
         val view = glGetUniformLocation(name, "view")
         val proj = glGetUniformLocation(name, "projection")
+    }
+
+    fun loadTexture(path: String): Int {
+
+        val textureID = glGenTextures()
+
+        val texture = loadPNG(path)
+        val format = gli.gl.translate(texture.format, texture.swizzles)
+
+        glBindTexture(GL_TEXTURE_2D, textureID)
+        glTexImage2D(format, texture)
+        glGenerateMipmap(GL_TEXTURE_2D)
+
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT)
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT)
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR)
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
+
+        texture.dispose()
+
+        return textureID
     }
 
     fun run() {
@@ -232,25 +292,18 @@ private class Materials {
 
             // be sure to activate shader when setting uniforms/drawing objects
             glUseProgram(lighting)
-
             glUniform(lighting.lgt.pos, lightPos)
             glUniform(lighting.viewPos, camera.position)
 
             // light properties
-            val lightColor = Vec3(
-                    x = sin(glfw.time * 2.0f),
-                    y = sin(glfw.time * 0.7f),
-                    z = sin(glfw.time * 1.3f))
-            val diffuseColor = lightColor * 0.5f    // decrease the influence
-            val ambientColor = diffuseColor * 0.2f  // low influence
-            glUniform(lighting.lgt.ambient, ambientColor)
-            glUniform(lighting.lgt.diffuse, diffuseColor)
+            glUniform3(lighting.lgt.ambient, 0.2f)
+            glUniform3(lighting.lgt.diffuse, 0.5f)
             glUniform3(lighting.lgt.specular, 1.0f)
+            glUniform(lighting.lgt.constant, 1.0f)
+            glUniform(lighting.lgt.linear, 0.09f)
+            glUniform(lighting.lgt.quadratic, 0.032f)
 
             // material properties
-            glUniform(lighting.mtl.ambient, 1.0f, 0.5f, 0.31f)
-            glUniform(lighting.mtl.diffuse, 1.0f, 0.5f, 0.31f)
-            glUniform3(lighting.mtl.specular, 0.5f)
             glUniform(lighting.mtl.shininess, 32.0f)
 
             // view/projection transformations
@@ -259,21 +312,32 @@ private class Materials {
             glUniform(lighting.proj, projection)
             glUniform(lighting.view, view)
 
-            // world transformation
-            var model = Mat4()
-            glUniform(lighting.model, model)
+            // bind diffuse map
+            glActiveTexture(GL_TEXTURE0 + semantic.sampler.DIFFUSE)
+            glBindTexture(GL_TEXTURE_2D, textures[Texture.Diffuse])
+            // bind specular map
+            glActiveTexture(GL_TEXTURE0 + semantic.sampler.SPECULAR)
+            glBindTexture(GL_TEXTURE_2D, textures[Texture.Specular])
 
-            // render the cube
+            // render containers
             glBindVertexArray(vao[VA.Cube])
-            glDrawArrays(GL_TRIANGLES, 36)
+            cubePositions.forEachIndexed { i, pos ->
 
+                // calculate the model matrix for each object and pass it to shader before drawing
+                val model = Mat4().translate(pos)
+                val angle = 20.0f * i
+                model.rotate_(angle.rad, 1.0f, 0.3f, 0.5f)
+                glUniform(lighting.model, model)
+
+                glDrawArrays(GL_TRIANGLES, 36)
+            }
 
             // also draw the lamp object
             glUseProgram(lamp)
 
             glUniform(lamp.proj, projection)
             glUniform(lamp.view, view)
-            model = model
+            val model = Mat4()
                     .translate(lightPos)
                     .scale(0.2f) // a smaller cube
             glUniform(lamp.model, model)
@@ -292,8 +356,9 @@ private class Materials {
         //  optional: de-allocate all resources once they've outlived their purpose:
         glDeleteVertexArrays(vao)
         glDeleteBuffers(vbo)
+        glDeleteTextures(textures)
 
-        destroyBuffers(vao, vbo, vertices)
+        destroyBuffers(vao, vbo, textures, vertices)
 
         window.dispose()
         //  glfw: terminate, clearing all previously allocated GLFW resources.

@@ -1,15 +1,12 @@
 package learnOpenGL.b_lighting
 
 /**
- * Created by elect on 01/05/17.
+ * Created by GBarbieri on 02.05.2017.
  */
 
 import gli.loadPNG
-import glm.f
-import glm.glm
+import glm.*
 import glm.mat4x4.Mat4
-import glm.rad
-import glm.set
 import glm.vec3.Vec3
 import learnOpenGL.common.Camera
 import learnOpenGL.common.Camera.Movement.*
@@ -35,14 +32,14 @@ import uno.glsl.Program
 
 fun main(args: Array<String>) {
 
-    with(LightingMapsSpecular()) {
+    with(MultipleLights()) {
 
         run()
         end()
     }
 }
 
-private class LightingMapsSpecular {
+private class MultipleLights {
 
     val window: GlfwWindow
 
@@ -103,6 +100,26 @@ private class LightingMapsSpecular {
             -0.5f, +0.5f, +0.5f, +0.0f, +1.0f, +0.0f, 0.0f, 0.0f,
             -0.5f, +0.5f, -0.5f, +0.0f, +1.0f, +0.0f, 0.0f, 1.0f)
 
+    // positions all containers
+    val cubePositions = arrayOf(
+            Vec3(0.0f, 0.0f, 0.0f),
+            Vec3(2.0f, 5.0f, -15.0f),
+            Vec3(-1.5f, -2.2f, -2.5f),
+            Vec3(-3.8f, -2.0f, -12.3f),
+            Vec3(2.4f, -0.4f, -3.5f),
+            Vec3(-1.7f, 3.0f, -7.5f),
+            Vec3(1.3f, -2.0f, -2.5f),
+            Vec3(1.5f, 2.0f, -2.5f),
+            Vec3(1.5f, 0.2f, -1.5f),
+            Vec3(-1.3f, 1.0f, -1.5f))
+
+    // positions of the point lights
+    val pointLightPositions = arrayOf(
+            Vec3(0.7f, 0.2f, 2.0f),
+            Vec3(2.3f, -3.3f, -4.0f),
+            Vec3(-4.0f, 2.0f, -12.0f),
+            Vec3(0.0f, 0.0f, -3.0f))
+
     // camera
     val camera = Camera(position = Vec3(0.0f, 0.0f, 3.0f))
     var lastX = 800.0f / 2.0
@@ -113,10 +130,7 @@ private class LightingMapsSpecular {
     var deltaTime = 0.0f    // time between current frame and last frame
     var lastFrame = 0.0f
 
-    // lighting
-    val lightPos = Vec3(1.2f, 1.0f, 2.0f)
-
-    object Texture{
+    object Texture {
         val Diffuse = 0
         val Specular = 1
         val MAX = 2
@@ -140,7 +154,7 @@ private class LightingMapsSpecular {
         }
 
         //  glfw window creation
-        window = GlfwWindow(800, 600, "Lighting Maps Specular")
+        window = GlfwWindow(800, 600, "Multiple Lights")
 
         with(window) {
 
@@ -148,9 +162,9 @@ private class LightingMapsSpecular {
 
             show()   // Make the window visible
 
-            framebufferSizeCallback = this@LightingMapsSpecular::framebuffer_size_callback
-            cursorPosCallback = this@LightingMapsSpecular::mouse_callback
-            scrollCallback = this@LightingMapsSpecular::scroll_callback
+            framebufferSizeCallback = this@MultipleLights::framebuffer_size_callback
+            cursorPosCallback = this@MultipleLights::mouse_callback
+            scrollCallback = this@MultipleLights::scroll_callback
 
             // tell GLFW to capture our mouse
             cursor = Disabled
@@ -167,7 +181,7 @@ private class LightingMapsSpecular {
 
 
         // build and compile our shader program
-        lighting = Lighting("shaders/b/_06", "lighting-maps")
+        lighting = Lighting("shaders/b/_11", "multiple-lights")
         lamp = Lamp("shaders/b/_01", "lamp")
 
 
@@ -213,14 +227,39 @@ private class LightingMapsSpecular {
     inner class Lighting(root: String, shader: String) : Lamp(root, shader) {
 
         val viewPos = glGetUniformLocation(name, "viewPos")
-        val lgt = Light()
+        val dirLight = DirLight()
+        val pointLight = Array(4, { PointLight(it) })
+        val spotLight = SpotLight()
         val mtl = Material()
 
-        inner class Light {
-            val pos = glGetUniformLocation(name, "light.position")
+        inner class DirLight {
+            val dir = glGetUniformLocation(name, "light.direction")
             val ambient = glGetUniformLocation(name, "light.ambient")
             val diffuse = glGetUniformLocation(name, "light.diffuse")
             val specular = glGetUniformLocation(name, "light.specular")
+        }
+
+        inner class PointLight(i: Int) {
+            val pos = glGetUniformLocation(name, "pointLights[$i].position")
+            val ambient = glGetUniformLocation(name, "pointLights[$i].ambient")
+            val diffuse = glGetUniformLocation(name, "pointLights[$i].diffuse")
+            val specular = glGetUniformLocation(name, "pointLights[$i].specular")
+            val constant = glGetUniformLocation(name, "pointLights[$i].constant")
+            val linear = glGetUniformLocation(name, "pointLights[$i].linear")
+            val quadratic = glGetUniformLocation(name, "pointLights[$i].quadratic")
+        }
+
+        inner class SpotLight() {
+            val pos = glGetUniformLocation(name, "spotLight.position")
+            val dir = glGetUniformLocation(name, "spotLight.direction")
+            val ambient = glGetUniformLocation(name, "spotLight.ambient")
+            val diffuse = glGetUniformLocation(name, "spotLight.diffuse")
+            val specular = glGetUniformLocation(name, "spotLight.specular")
+            val constant = glGetUniformLocation(name, "spotLight.constant")
+            val linear = glGetUniformLocation(name, "spotLight.linear")
+            val quadratic = glGetUniformLocation(name, "spotLight.quadratic")
+            val cutOff = glGetUniformLocation(name, "spotLight.cutOff")
+            val outerCutOff = glGetUniformLocation(name, "spotLight.outerCutOff")
         }
 
         inner class Material {
@@ -228,7 +267,7 @@ private class LightingMapsSpecular {
         }
     }
 
-    inner open class Lamp(root: String, shader: String) : Program(LightingMapsSpecular::class.java, root, "$shader.vert", "$shader.frag") {
+    inner open class Lamp(root: String, shader: String) : Program(MultipleLights::class.java, root, "$shader.vert", "$shader.frag") {
 
         val model = glGetUniformLocation(name, "model")
         val view = glGetUniformLocation(name, "view")
@@ -276,26 +315,52 @@ private class LightingMapsSpecular {
 
             // be sure to activate shader when setting uniforms/drawing objects
             glUseProgram(lighting)
-            glUniform(lighting.lgt.pos, lightPos)
             glUniform(lighting.viewPos, camera.position)
+            glUniform(lighting.mtl.shininess, 32.0f)
 
-            // light properties
-            glUniform3(lighting.lgt.ambient, 0.2f)
-            glUniform3(lighting.lgt.diffuse, 0.5f)
-            glUniform3(lighting.lgt.specular, 1.0f)
+            /*  Here we set all the uniforms for the 5/6 types of lights we have. We have to set them manually and index
+                the proper PointLight struct in the array to set each uniform variable. This can be done more
+                code-friendly by defining light types as classes and set their values in there, or by using a more
+                efficient uniform approach by using 'Uniform buffer objects', but that is something we'll discuss in
+                the 'Advanced GLSL' tutorial.        */
+            // directional light
+            with(lighting.dirLight) {
+                glUniform(dir, -0.2f, -1.0f, -0.3f)
+                glUniform3(ambient, 0.05f)
+                glUniform3(diffuse, 0.4f)
+                glUniform3(specular, 0.5f)
+            }
+            // point lights
+            for (i in 0..3)
+                with(lighting.pointLight[i]) {
+                    glUniform(pos, pointLightPositions[i])
+                    glUniform3(ambient, 0.05f)
+                    glUniform3(diffuse, 0.8f)
+                    glUniform3(specular, 1.0f)
+                    glUniform(constant, 1.0f)
+                    glUniform(linear, 0.09f)
+                    glUniform(quadratic, 0.032f)
+                }
+            // spotLight
+            with(lighting.spotLight) {
+                glUniform(pos, camera.position)
+                glUniform(dir, camera.front)
+                glUniform3(ambient, 0.0f)
+                glUniform3(diffuse, 1.0f)
+                glUniform3(specular, 1.0f)
+                glUniform(constant, 1.0f)
+                glUniform(linear, 0.9f)
+                glUniform(quadratic, 0.032f)
+                glUniform(cutOff, 12.5f.rad.cos)
+                glUniform(outerCutOff, 15.0f.rad.cos)
+            }
 
-            // material properties
-            glUniform(lighting.mtl.shininess, 64.0f)
 
             // view/projection transformations
             val projection = glm.perspective(camera.zoom.rad, window.aspect, 0.1f, 100.0f)
             val view = camera.viewMatrix
             glUniform(lighting.proj, projection)
             glUniform(lighting.view, view)
-
-            // world transformation
-            var model = Mat4()
-            glUniform(lighting.model, model)
 
             // bind diffuse map
             glActiveTexture(GL_TEXTURE0 + semantic.sampler.DIFFUSE)
@@ -304,23 +369,34 @@ private class LightingMapsSpecular {
             glActiveTexture(GL_TEXTURE0 + semantic.sampler.SPECULAR)
             glBindTexture(GL_TEXTURE_2D, textures[Texture.Specular])
 
-            // render the cube
+            // render containers
             glBindVertexArray(vao[VA.Cube])
-            glDrawArrays(GL_TRIANGLES, 36)
+            cubePositions.forEachIndexed { i, pos ->
 
+                // calculate the model matrix for each object and pass it to shader before drawing
+                val model = Mat4().translate(pos)
+                val angle = 20.0f * i
+                model.rotate_(angle.rad, 1.0f, 0.3f, 0.5f)
+                glUniform(lighting.model, model)
+
+                glDrawArrays(GL_TRIANGLES, 36)
+            }
 
             // also draw the lamp object
             glUseProgram(lamp)
-
             glUniform(lamp.proj, projection)
             glUniform(lamp.view, view)
-            model = model
-                    .translate(lightPos)
-                    .scale(0.2f) // a smaller cube
-            glUniform(lamp.model, model)
 
+            // we now draw as many light bulbs as we have point lights.
             glBindVertexArray(vao[VA.Light])
-            glDrawArrays(GL_TRIANGLES, 36)
+            pointLightPositions.forEach {
+                val model = Mat4()
+                        .translate(it)
+                        .scale(0.2f) // Make it a smaller cube
+
+                glUniform(lamp.model, model)
+                glDrawArrays(GL_TRIANGLES, 36)
+            }
 
             //  glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
             window.swapBuffers()

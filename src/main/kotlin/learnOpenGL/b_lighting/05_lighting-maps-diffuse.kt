@@ -199,12 +199,12 @@ private class LightingMapsDiffuse {
 
     inner class Lighting(root: String, shader: String) : Lamp(root, shader) {
 
-        val lgtPos = glGetUniformLocation(name, "light.position")
         val viewPos = glGetUniformLocation(name, "viewPos")
         val lgt = Light()
         val mtl = Material()
 
         inner class Light {
+            val pos = glGetUniformLocation(name, "light.position")
             val ambient = glGetUniformLocation(name, "light.ambient")
             val diffuse = glGetUniformLocation(name, "light.diffuse")
             val specular = glGetUniformLocation(name, "light.specular")
@@ -264,12 +264,12 @@ private class LightingMapsDiffuse {
 
             // be sure to activate shader when setting uniforms/drawing objects
             glUseProgram(lighting)
-            glUniform(lighting.lgtPos, lightPos)
+            glUniform(lighting.lgt.pos, lightPos)
             glUniform(lighting.viewPos, camera.position)
 
             // light properties
-            glUniform(lighting.lgt.ambient, 0.2f, 0.2f, 0.2f)
-            glUniform(lighting.lgt.diffuse, 0.5f, 0.5f, 0.5f)
+            glUniform3(lighting.lgt.ambient, 0.2f)
+            glUniform3(lighting.lgt.diffuse, 0.5f)
             glUniform3(lighting.lgt.specular, 1.0f)
 
             // material properties
