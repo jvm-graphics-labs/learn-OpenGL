@@ -1,10 +1,7 @@
 package learnOpenGL.common
 
-import assimp.AiMesh
-import assimp.AiNode
-import assimp.Importer
+import assimp.*
 import assimp.AiPostProcessSteps.*
-import assimp.AiScene
 import glm.vec2.Vec2
 
 /**
@@ -20,7 +17,7 @@ class Model(path: String, val gammaCorrection: Boolean = false) {
     init {
         // Read file via ASSIMP
         val importer = Importer()
-        val scene = importer.readFile(this::class.java, "objects/nanosuit/nanosuit.obj", Triangulate.i or FlipUVs.i or CalcTangentSpace.i)
+        val scene = importer.readFile(this::class.java, path, Triangulate.i or FlipUVs.i or CalcTangentSpace.i)
         // Check for errors
         if (scene == null) // if is Not Zero
 //        if(!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) // if is Not Zero
@@ -33,6 +30,9 @@ class Model(path: String, val gammaCorrection: Boolean = false) {
 //
 //        // Process ASSIMP's root node recursively
         processNode(scene.mRootNode, scene)
+
+        // Load all Diffuse, Specular, Normal and Height maps
+
     }
 
     /** Processes a node in a recursive fashion. Processes each individual mesh located at the node and repeats this
@@ -52,6 +52,7 @@ class Model(path: String, val gammaCorrection: Boolean = false) {
         // Data to fill
         val vertices = ArrayList<Vertex>()
         val indices = ArrayList<Int>()
+        val textures = ArrayList<Texture>()
 
         // Walk through each of the mesh's vertices
         for (i in 0 until mesh.mNumVertices)
@@ -86,6 +87,19 @@ class Model(path: String, val gammaCorrection: Boolean = false) {
                 Specular: texture_specularN
                 Normal: texture_normalN */
 
+            // Load all Diffuse, Specular, Normal and Height maps
+            textures.addAll(loadMaterialTextures(material, AiTexture.Type.diffuse, "texture_diffuse"))
         }
+    }
+
+    /**
+     * Checks all material textures of a given type and loads the textures if they're not loaded yet.
+     * The required info is returned as a Texture struct.
+     */
+    fun loadMaterialTextures(mat: AiMaterial, type: AiTexture.Type, typeName: String): List<Texture> {
+
+        val textures = ArrayList<Texture>()
+
+
     }
 }

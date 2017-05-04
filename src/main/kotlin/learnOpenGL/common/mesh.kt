@@ -19,4 +19,9 @@ class Vertex(
         // Bitangent
         val bitangent: Vec3)
 
+class Texture(
+        val id: Int,
+        val type: String,
+        val path: String)
+
 class mesh
