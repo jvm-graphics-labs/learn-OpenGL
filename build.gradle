@@ -22,10 +22,10 @@ dependencies {
 
     compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion"
 
-    compile 'com.github.kotlin-graphics:glm:4711d0f44930262d53f4c3b9a799edb4f6a4401d'
-    compile 'com.github.kotlin-graphics:gli:4f94c22fac4a6fad4cf84a8d3a436b2ade10453c'
-    compile 'com.github.kotlin-graphics:uno-sdk:3faa2cb28044564b80e8e2d2b4342a007142a083'
-    compile 'com.github.java-graphics:assimp:ab7cf7e5a6ead86e3ef726e17b053164b3312f1c'
+    compile 'com.github.kotlin-graphics:glm:f0580a46e8677001b2b49b36e0a255ff52fb05fe'
+    compile 'com.github.kotlin-graphics:gli:97b39116024dddceb2e09106198321049dc3a85f'
+    compile 'com.github.kotlin-graphics:uno-sdk:64e5bb942b681326e63fbe91683c8ce7ba1aaeb6'
+    compile 'com.github.java-graphics:assimp:993a4d963c5b39d0b2f43d1726d71804522e7207'
 
 //    testCompile("io.kotlintest:kotlintest:2.0.0")
 

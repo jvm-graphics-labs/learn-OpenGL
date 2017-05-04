@@ -3,6 +3,8 @@ package learnOpenGL.common
 import assimp.*
 import assimp.AiPostProcessSteps.*
 import glm.vec2.Vec2
+import org.lwjgl.opengl.GL11.*
+import org.lwjgl.opengl.GL30.glGenerateMipmap
 
 /**
  * Created by GBarbieri on 02.05.2017.
@@ -11,7 +13,9 @@ import glm.vec2.Vec2
 class Model(path: String, val gammaCorrection: Boolean = false) {
 
     /*  Model Data */
-    val meshes = ArrayList<mesh>()
+    val meshes = ArrayList<Mesh>()
+    // Stores all the textures loaded so far, optimization to make sure textures aren't loaded more than once.
+    var textures_loaded = ArrayList<String>()
 
     /** Loads a model with supported ASSIMP extensions from file and stores the resulting meshes in the meshes vector.  */
     init {
@@ -43,11 +47,11 @@ class Model(path: String, val gammaCorrection: Boolean = false) {
         scene.mMeshes.forEach {
             // The node object only contains indices to index the actual objects in the scene.
             // The scene contains all the data, node is just to keep stuff organized (like relations between nodes).
-            meshes +=
+            meshes += processMesh(it, scene)
         }
     }
 
-    fun processMesh(mesh: AiMesh, scene: AiScene): mesh {
+    fun processMesh(mesh: AiMesh, scene: AiScene): Mesh {
 
         // Data to fill
         val vertices = ArrayList<Vertex>()
@@ -76,7 +80,7 @@ class Model(path: String, val gammaCorrection: Boolean = false) {
         mesh.mFaces.forEach { indices += it }   // Retrieve all indices of the face and store them in the indices vector
 
         // Process materials
-        if(mesh.mMaterialIndex >= 0) {
+        if (mesh.mMaterialIndex >= 0) {
 
             val material = scene.mMaterials[mesh.mMaterialIndex]
 
@@ -87,19 +91,49 @@ class Model(path: String, val gammaCorrection: Boolean = false) {
                 Specular: texture_specularN
                 Normal: texture_normalN */
 
-            // Load all Diffuse, Specular, Normal and Height maps
-            textures.addAll(loadMaterialTextures(material, AiTexture.Type.diffuse, "texture_diffuse"))
+            // 1. Diffuse maps
+            textures.addAll(loadMaterialTextures(scene, material, AiTexture.Type.diffuse, "texture_diffuse"))
+            // 1. Specular maps
+//            textures.addAll(loadMaterialTextures(scene, material, AiTexture.Type.specular, "texture_specular"))
+//            // 1. Normal maps
+//            textures.addAll(loadMaterialTextures(scene, material, AiTexture.Type.height, "texture_normal"))
+//            // 1. Normal maps
+//            textures.addAll(loadMaterialTextures(scene, material, AiTexture.Type.height, "texture_normal"))
         }
+
+        // Return a mesh object created from the extracted mesh data
+        return Mesh(vertices, indices, textures)
     }
 
     /**
      * Checks all material textures of a given type and loads the textures if they're not loaded yet.
      * The required info is returned as a Texture struct.
      */
-    fun loadMaterialTextures(mat: AiMaterial, type: AiTexture.Type, typeName: String): List<Texture> {
+    fun loadMaterialTextures(scene: AiScene, mat: AiMaterial, type: AiTexture.Type, typeName: String) =
 
-        val textures = ArrayList<Texture>()
+            mat.textures.filter { it.type == type && !textures_loaded.contains(it.file) }.map {
 
+                val textureID = glGenTextures()
 
-    }
+                val gliTexture = scene.textures[it.file]!!
+
+                glBindTexture(GL_TEXTURE_2D, textureID)
+                val format = gli.gl.translate(gliTexture.format, gliTexture.swizzles)
+                // TODO gln
+                glTexImage2D(GL_TEXTURE_2D, 0,
+                        format.internal.i,
+                        gliTexture.extent().x, gliTexture.extent().y, 0,
+                        format.external.i, format.type.i,
+                        gliTexture.data())
+                glGenerateMipmap(GL_TEXTURE_2D)
+
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT)
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT)
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR)
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
+
+                textures_loaded.add(it.file!!)
+
+                Texture(textureID, typeName, it.file!!)
+            }
 }
