@@ -71,9 +71,9 @@ class Model(path: String, val gammaCorrection: Boolean = false) {
                     if (mesh.mTextureCoords.isNotEmpty())
                         Vec2(mesh.mTextureCoords[0][i])
                     else
-                        Vec2(),
-                    tangent = mesh.mTangents[i],
-                    bitangent = mesh.mBitangents[i])
+                        Vec2())
+//                    tangent = mesh.mTangents[i],
+//                    bitangent = mesh.mBitangents[i])
 
         /* Now wak through each of the mesh's faces (a face is a mesh its triangle) and retrieve the corresponding
          * vertex indices.  */

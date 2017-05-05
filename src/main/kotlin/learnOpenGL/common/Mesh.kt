@@ -3,13 +3,16 @@ package learnOpenGL.common
 import glm.BYTES
 import glm.vec2.Vec2
 import glm.vec3.Vec3
+import org.lwjgl.opengl.GL11.GL_FLOAT
 import org.lwjgl.opengl.GL15.*
+import org.lwjgl.opengl.GL20.glEnableVertexAttribArray
+import org.lwjgl.opengl.GL20.glVertexAttribPointer
 import org.lwjgl.opengl.GL30.glGenVertexArrays
 import uno.buffer.byteBufferBig
 import uno.buffer.intBufferBig
-import uno.gln.glBindBuffer
-import uno.gln.glBindVertexArray
-import uno.gln.intBuffer
+import uno.glf.glf
+import uno.glf.semantic
+import uno.gln.*
 
 /**
  * Created by GBarbieri on 02.05.2017.
@@ -76,21 +79,21 @@ class Mesh(
 
         // Set the vertex attribute pointers
         // Vertex Positions
-        glEnableVertexAttribArray(0)
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid *)0)
+        glEnableVertexAttribArray(semantic.attr.POSITION)
+        glVertexAttribPointer(semantic.attr.POSITION, Vec3.length, GL_FLOAT, false, Vertex.size, 0)
         // Vertex Normals
-        glEnableVertexAttribArray(1)
-        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid *) offsetof (Vertex, Normal))
+        glEnableVertexAttribArray(semantic.attr.NORMAL)
+        glVertexAttribPointer(semantic.attr.NORMAL, Vec3.length, GL_FLOAT, false, Vertex.size, Vec3.size)
         // Vertex Texture Coords
-        glEnableVertexAttribArray(2)
-        glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid *) offsetof (Vertex, TexCoords))
+        glEnableVertexAttribArray(semantic.attr.TEX_COORD)
+        glVertexAttribPointer(semantic.attr.TEX_COORD, Vec2.length, GL_FLOAT, false, Vertex.size, Vec3.size * 2)
         // Vertex Tangent
-        glEnableVertexAttribArray(3)
-        glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid *) offsetof (Vertex, Tangent))
-        // Vertex Bitangent
-        glEnableVertexAttribArray(4)
-        glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid *) offsetof (Vertex, Bitangent))
+//        glEnableVertexAttribArray(3)
+//        glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid *) offsetof (Vertex, Tangent))
+//        // Vertex Bitangent
+//        glEnableVertexAttribArray(4)
+//        glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid *) offsetof (Vertex, Bitangent))
 
-        glBindVertexArray(0)
+        glBindVertexArray()
     }
 }
