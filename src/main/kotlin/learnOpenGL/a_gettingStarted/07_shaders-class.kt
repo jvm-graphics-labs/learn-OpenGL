@@ -6,7 +6,6 @@ package learnOpenGL.a_gettingStarted
 
 import glm.vec3.Vec3
 import learnOpenGL.common.GlfwWindow
-import learnOpenGL.common.Shader
 import learnOpenGL.common.glfw
 import org.lwjgl.glfw.GLFW.GLFW_KEY_ESCAPE
 import org.lwjgl.opengl.GL
@@ -114,7 +113,7 @@ private class ShadersClass {
     fun run() {
 
         //  render loop
-        while (window.shouldNotClose) {
+        while (window.open) {
 
             //  input
             processInput(window)
@@ -142,7 +141,7 @@ private class ShadersClass {
 
         destroyBuffers(vao, vbo, vertices)
 
-        window.dispose()
+        window.destroy()
         //  glfw: terminate, clearing all previously allocated GLFW resources.
         glfw.terminate()
     }
@@ -151,7 +150,7 @@ private class ShadersClass {
     fun processInput(window: GlfwWindow) {
 
         if (window.pressed(GLFW_KEY_ESCAPE))
-            window.shouldClose = true
+            window.close = true
     }
 
     /** glfw: whenever the window size changed (by OS or user resize) this callback function executes   */

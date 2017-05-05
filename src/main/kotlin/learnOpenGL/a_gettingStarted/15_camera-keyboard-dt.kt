@@ -29,9 +29,6 @@ import uno.gln.*
 import glm.vec3.operators.times
 import org.lwjgl.opengl.GL20.glGetUniformLocation
 import uno.glsl.Program
-import org.lwjgl.glfw.GLFW.glfwGetTime
-
-
 
 
 fun main(args: Array<String>) {
@@ -255,7 +252,7 @@ private class CameraKeyboardDt {
     fun run() {
 
         //  render loop
-        while (window.shouldNotClose) {
+        while (window.open) {
 
             // per-frame time logic
             val currentFrame = glfw.time
@@ -309,7 +306,7 @@ private class CameraKeyboardDt {
 
         destroyBuffers(vao, vbo, textures, vertices)
 
-        window.dispose()
+        window.destroy()
         //  glfw: terminate, clearing all previously allocated GLFW resources.
         glfw.terminate()
     }
@@ -318,7 +315,7 @@ private class CameraKeyboardDt {
     fun processInput(window: GlfwWindow) {
 
         if (window.pressed(GLFW_KEY_ESCAPE))
-            window.shouldClose = true
+            window.close = true
 
         val cameraSpeed = 2.5 * deltaTime
         if (window.pressed(GLFW_KEY_W))

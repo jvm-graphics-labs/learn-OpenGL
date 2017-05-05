@@ -1,6 +1,7 @@
 package learnOpenGL.common
 
 import glm.f
+import glm.i
 import glm.vec2.Vec2i
 import org.lwjgl.glfw.Callbacks
 import org.lwjgl.glfw.GLFW.*
@@ -24,9 +25,6 @@ class GlfwWindow(width: Int, height: Int, title: String) {
     private val y = intBufferBig(1)
 
     val handle = glfwCreateWindow(width, height, title, 0L, 0L)
-    var shouldClose = false
-    val shouldNotClose
-        get() = !shouldClose
 
     init {
         if (handle == MemoryUtil.NULL) {
@@ -35,24 +33,52 @@ class GlfwWindow(width: Int, height: Int, title: String) {
         }
     }
 
+    var close = false
+    val open get() = !close
+
+    var title = title
+        set(value) = glfwSetWindowTitle(handle, value)
+
+    // TODO icon
+
     var pos = Vec2i()
         get() {
             glfwGetWindowPos(handle, x, y)
             return field.put(x[0], y[0])
         }
-        set(value) = glfwSetWindowPos(handle, value.x, value.y)
+        set(value) {
+            glfwSetWindowPos(handle, value.x, value.y)
+            field.put(value)
+        }
 
-    val size: Vec2i
+    var size: Vec2i
         get() {
             glfwGetWindowSize(handle, x, y)
             return Vec2i(x[0], y[0])
         }
+        set(value) {
+            glfwSetWindowSize(handle, value.x, value.y)
+        }
 
-    val aspect get() = size.x / size.y.f
+    fun sizeLimit(width: IntRange, height: IntRange) = glfwSetWindowSizeLimits(handle, width.start, height.start, width.endInclusive, height.endInclusive)
+
+    fun aspect(numer: Int, denom: Int) = glfwSetWindowAspectRatio(handle, numer, denom)
+
+    var aspect
+        get() = size.x / size.y.f
+        set(value) = glfwSetWindowAspectRatio(handle, (value * 1_000).i, 1_000)
+
+    val framebufferSize: Vec2i
+        get() {
+            glfwGetFramebufferSize(handle, x, y)
+            return Vec2i(x[0], y[0])
+        }
+
+//    val frameSize:
 
     fun makeContextCurrent() = glfwMakeContextCurrent(handle)
 
-    fun dispose() {
+    fun destroy() {
 
         destroyBuffers(x, y)
 
@@ -73,6 +99,7 @@ class GlfwWindow(width: Int, height: Int, title: String) {
                 glfwSetFramebufferSizeCallback(handle, framebufferSizeListener)?.free()
             field = value
         }
+
     private val framebufferSizeListener = FramebufferSizeListener()
 
     inner class FramebufferSizeListener : GLFWFramebufferSizeCallbackI {
@@ -117,7 +144,7 @@ class GlfwWindow(width: Int, height: Int, title: String) {
             GLFW_CURSOR_DISABLED -> Cursor.Disabled
             else -> throw Error()
         }
-        set(value) = glfwSetInputMode(handle, GLFW_CURSOR, when(value){
+        set(value) = glfwSetInputMode(handle, GLFW_CURSOR, when (value) {
             Cursor.Normal -> GLFW_CURSOR_NORMAL
             Cursor.Hidden -> GLFW_CURSOR_HIDDEN
             Cursor.Disabled -> GLFW_CURSOR_DISABLED

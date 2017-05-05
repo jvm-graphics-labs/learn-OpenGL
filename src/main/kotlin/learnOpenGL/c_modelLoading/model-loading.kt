@@ -4,7 +4,6 @@ package learnOpenGL.c_modelLoading
  * Created by GBarbieri on 02.05.2017.
  */
 
-import gli.loadPNG
 import glm.*
 import glm.mat4x4.Mat4
 import glm.vec3.Vec3
@@ -23,9 +22,6 @@ import org.lwjgl.opengl.GL15.*
 import org.lwjgl.opengl.GL20.glGetUniformLocation
 import org.lwjgl.opengl.GL30.*
 import uno.buffer.destroyBuffers
-import uno.buffer.floatBufferOf
-import uno.buffer.intBufferBig
-import uno.glf.glf
 import uno.glf.semantic
 import uno.gln.*
 import uno.glsl.Program
@@ -116,7 +112,7 @@ private class ModelLoading {
     fun run() {
 
         //  render loop
-        while (window.shouldNotClose) {
+        while (window.open) {
 
             // per-frame time logic
             val currentFrame = glfw.time
@@ -194,7 +190,7 @@ private class ModelLoading {
 
         destroyBuffers(vao, vbo, textures, vertices)
 
-        window.dispose()
+        window.destroy()
         //  glfw: terminate, clearing all previously allocated GLFW resources.
         glfw.terminate()
     }
@@ -203,7 +199,7 @@ private class ModelLoading {
     fun processInput(window: GlfwWindow) {
 
         if (window.pressed(GLFW_KEY_ESCAPE))
-            window.shouldClose = true
+            window.close = true
 
         if (window.pressed(GLFW_KEY_W))
             camera.processKeyboard(Forward, deltaTime)

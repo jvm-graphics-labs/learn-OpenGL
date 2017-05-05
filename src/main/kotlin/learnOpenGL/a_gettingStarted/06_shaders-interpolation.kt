@@ -164,7 +164,7 @@ private class ShadersInterpolation {
     fun run() {
 
         //  render loop
-        while (window.shouldNotClose) {
+        while (window.open) {
 
             //  input
             processInput(window)
@@ -190,7 +190,7 @@ private class ShadersInterpolation {
 
         uno.buffer.destroyBuffers(vao, vbo, vertices)
 
-        window.dispose()
+        window.destroy()
         //  glfw: terminate, clearing all previously allocated GLFW resources.
         learnOpenGL.common.glfw.terminate()
     }
@@ -199,7 +199,7 @@ private class ShadersInterpolation {
     fun processInput(window: learnOpenGL.common.GlfwWindow) {
 
         if (window.pressed(GLFW_KEY_ESCAPE))
-            window.shouldClose = true
+            window.close = true
     }
 
     /** glfw: whenever the window size changed (by OS or user resize) this callback function executes   */

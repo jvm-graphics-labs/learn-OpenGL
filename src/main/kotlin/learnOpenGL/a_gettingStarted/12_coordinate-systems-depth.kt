@@ -24,8 +24,6 @@ import uno.gln.*
 import glm.glm
 import glm.rad
 import org.lwjgl.opengl.GL20.*
-import uno.gln.ProgramUse.int
-import uno.gln.ProgramUse.location
 import uno.glsl.Program
 
 fun main(args: Array<String>) {
@@ -226,7 +224,7 @@ private class CoordinateSystemsDepth {
     fun run() {
 
         //  render loop
-        while (window.shouldNotClose) {
+        while (window.open) {
 
             //  input
             processInput(window)
@@ -276,7 +274,7 @@ private class CoordinateSystemsDepth {
 
         destroyBuffers(vao, vbo, textures, vertices)
 
-        window.dispose()
+        window.destroy()
         //  glfw: terminate, clearing all previously allocated GLFW resources.
         glfw.terminate()
     }
@@ -285,7 +283,7 @@ private class CoordinateSystemsDepth {
     fun processInput(window: GlfwWindow) {
 
         if (window.pressed(GLFW_KEY_ESCAPE))
-            window.shouldClose = true
+            window.close = true
     }
 
     /** glfw: whenever the window size changed (by OS or user resize) this callback function executes   */

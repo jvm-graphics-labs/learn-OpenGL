@@ -11,7 +11,6 @@ import org.lwjgl.glfw.GLFW.GLFW_KEY_ESCAPE
 import org.lwjgl.opengl.GL
 import org.lwjgl.opengl.GL11.*
 import org.lwjgl.opengl.GL12.GL_BGR
-import org.lwjgl.opengl.GL13
 import org.lwjgl.opengl.GL13.GL_TEXTURE0
 import org.lwjgl.opengl.GL13.glActiveTexture
 import org.lwjgl.opengl.GL15.*
@@ -159,7 +158,7 @@ private class Textures {
     fun run() {
 
         //  render loop
-        while (window.shouldNotClose) {
+        while (window.open) {
 
             //  input
             processInput(window)
@@ -191,7 +190,7 @@ private class Textures {
 
         destroyBuffers(vao, buffers, vertices, indices)
 
-        window.dispose()
+        window.destroy()
         //  glfw: terminate, clearing all previously allocated GLFW resources.
         glfw.terminate()
     }
@@ -200,7 +199,7 @@ private class Textures {
     fun processInput(window: GlfwWindow) {
 
         if (window.pressed(GLFW_KEY_ESCAPE))
-            window.shouldClose = true
+            window.close = true
     }
 
     /** glfw: whenever the window size changed (by OS or user resize) this callback function executes   */

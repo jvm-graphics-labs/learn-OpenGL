@@ -20,7 +20,6 @@ import org.lwjgl.opengl.GL12.GL_BGR
 import org.lwjgl.opengl.GL13.GL_TEXTURE0
 import org.lwjgl.opengl.GL13.glActiveTexture
 import org.lwjgl.opengl.GL15.*
-import org.lwjgl.opengl.GL20
 import org.lwjgl.opengl.GL20.glEnableVertexAttribArray
 import org.lwjgl.opengl.GL20.glGetUniformLocation
 import org.lwjgl.opengl.GL30.*
@@ -30,8 +29,6 @@ import uno.buffer.floatBufferOf
 import uno.buffer.intBufferBig
 import uno.glf.semantic
 import uno.gln.*
-import uno.gln.ProgramUse.int
-import uno.gln.ProgramUse.location
 import uno.glsl.Program
 
 fun main(args: Array<String>) {
@@ -246,7 +243,7 @@ private class CameraCircle {
     fun run() {
 
         //  render loop
-        while (window.shouldNotClose) {
+        while (window.open) {
 
             //  input
             processInput(window)
@@ -299,7 +296,7 @@ private class CameraCircle {
 
         destroyBuffers(vao, vbo, textures, vertices)
 
-        window.dispose()
+        window.destroy()
         //  glfw: terminate, clearing all previously allocated GLFW resources.
         glfw.terminate()
     }
@@ -308,7 +305,7 @@ private class CameraCircle {
     fun processInput(window: GlfwWindow) {
 
         if (window.pressed(GLFW_KEY_ESCAPE))
-            window.shouldClose = true
+            window.close = true
     }
 
     /** glfw: whenever the window size changed (by OS or user resize) this callback function executes   */

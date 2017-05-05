@@ -269,7 +269,7 @@ private class LightCastersDirectional {
     fun run() {
 
         //  render loop
-        while (window.shouldNotClose) {
+        while (window.open) {
 
             // per-frame time logic
             val currentFrame = glfw.time
@@ -338,7 +338,7 @@ private class LightCastersDirectional {
 
         destroyBuffers(vao, vbo, textures, vertices)
 
-        window.dispose()
+        window.destroy()
         //  glfw: terminate, clearing all previously allocated GLFW resources.
         glfw.terminate()
     }
@@ -347,7 +347,7 @@ private class LightCastersDirectional {
     fun processInput(window: GlfwWindow) {
 
         if (window.pressed(GLFW_KEY_ESCAPE))
-            window.shouldClose = true
+            window.close = true
 
         if (window.pressed(GLFW_KEY_W))
             camera.processKeyboard(Forward, deltaTime)
