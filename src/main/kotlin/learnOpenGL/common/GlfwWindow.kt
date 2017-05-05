@@ -1,8 +1,10 @@
 package learnOpenGL.common
 
+import glm.bool
 import glm.f
 import glm.i
 import glm.vec2.Vec2i
+import glm.vec4.Vec4i
 import org.lwjgl.glfw.Callbacks
 import org.lwjgl.glfw.GLFW.*
 import org.lwjgl.glfw.GLFWCursorPosCallbackI
@@ -23,6 +25,8 @@ class GlfwWindow(width: Int, height: Int, title: String) {
 
     private val x = intBufferBig(1)
     private val y = intBufferBig(1)
+    private val z = intBufferBig(1)
+    private val w = intBufferBig(1)
 
     val handle = glfwCreateWindow(width, height, title, 0L, 0L)
 
@@ -71,10 +75,37 @@ class GlfwWindow(width: Int, height: Int, title: String) {
     val framebufferSize: Vec2i
         get() {
             glfwGetFramebufferSize(handle, x, y)
-            return Vec2i(x[0], y[0])
+            return Vec2i(x, y)
         }
 
-//    val frameSize:
+    val frameSize: Vec4i
+        get() {
+            glfwGetWindowFrameSize(handle, x, y, z, w)
+            return Vec4i(x[0], y[0], z[0], w[0])
+        }
+
+    fun iconify() = glfwIconifyWindow(handle)
+    fun restore() = glfwRestoreWindow(handle)
+    fun maximize() = glfwMaximizeWindow(handle)
+    fun show() = glfwShowWindow(handle)
+    fun hide() = glfwHideWindow(handle)
+    fun focus() = glfwFocusWindow(handle)
+
+    val monitor get() = glfwGetWindowMonitor(handle)
+    fun monitor(monitor: Long, xPos: Int, yPos: Int, width: Int, height: Int) =
+            monitor(monitor, xPos, yPos, width, height, GLFW_DONT_CARE)
+    fun monitor(monitor: Long, xPos: Int, yPos: Int, width: Int, height: Int, refreshRate: Int) =
+            glfwSetWindowMonitor(handle, monitor, xPos, yPos, width, height, refreshRate)
+
+    val focused get() = glfwGetWindowAttrib(handle, GLFW_FOCUSED).bool
+    val iconified get() = glfwGetWindowAttrib(handle, GLFW_ICONIFIED).bool
+    val maximized get() = glfwGetWindowAttrib(handle, GLFW_MAXIMIZED).bool
+    val visible get() = glfwGetWindowAttrib(handle, GLFW_VISIBLE).bool
+    val resizable get() = glfwGetWindowAttrib(handle, GLFW_RESIZABLE).bool
+    val decorated get() = glfwGetWindowAttrib(handle, GLFW_DECORATED).bool
+    val floating get() = glfwGetWindowAttrib(handle, GLFW_FLOATING).bool
+
+
 
     fun makeContextCurrent() = glfwMakeContextCurrent(handle)
 
@@ -87,7 +118,7 @@ class GlfwWindow(width: Int, height: Int, title: String) {
         glfwDestroyWindow(handle)
     }
 
-    fun show() = glfwShowWindow(handle)
+
     fun swapBuffers() = glfwSwapBuffers(handle)
 
 
