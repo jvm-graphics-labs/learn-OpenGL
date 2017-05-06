@@ -1,6 +1,7 @@
 package learnOpenGL.common
 
 import glm.i
+import glm.s
 import org.lwjgl.glfw.GLFW.*
 
 object windowHint {
@@ -194,10 +195,10 @@ object Context {
             field = value
         }
 
-    var version = 10
+    var version = "1.0"
         set(value) {
-            glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, value / 10)
-            glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, value % 10)
+            glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, java.lang.Integer.parseInt(value[0].toString()))
+            glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, java.lang.Integer.parseInt(value[2].toString()))
             field = value
         }
 

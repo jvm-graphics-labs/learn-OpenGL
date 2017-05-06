@@ -4,7 +4,6 @@ package learnOpenGL.b_lighting
  * Created by GBarbieri on 02.05.2017.
  */
 
-import gli.loadPNG
 import glm.f
 import glm.glm
 import glm.mat4x4.Mat4
@@ -147,7 +146,7 @@ private class LightCastersPoint {
 
             //  Configure GLFW
             windowHint {
-                version = "3.3"
+                context.version = "3.3"
                 profile = "core"
             }
         }
@@ -255,7 +254,7 @@ private class LightCastersPoint {
 
         val textureID = glGenTextures()
 
-        val texture = loadPNG(path)
+        val texture = gli.load(path)
         val format = gli.gl.translate(texture.format, texture.swizzles)
 
         glBindTexture(GL_TEXTURE_2D, textureID)

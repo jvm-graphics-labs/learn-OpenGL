@@ -4,8 +4,10 @@ package learnOpenGL.c_modelLoading
  * Created by GBarbieri on 02.05.2017.
  */
 
-import glm.*
+import glm.f
+import glm.glm
 import glm.mat4x4.Mat4
+import glm.rad
 import glm.vec3.Vec3
 import learnOpenGL.common.Camera
 import learnOpenGL.common.Camera.Movement.*
@@ -16,14 +18,11 @@ import learnOpenGL.common.glfw
 import org.lwjgl.glfw.GLFW.*
 import org.lwjgl.opengl.GL
 import org.lwjgl.opengl.GL11.*
-import org.lwjgl.opengl.GL13.GL_TEXTURE0
-import org.lwjgl.opengl.GL13.glActiveTexture
-import org.lwjgl.opengl.GL15.*
 import org.lwjgl.opengl.GL20.glGetUniformLocation
-import org.lwjgl.opengl.GL30.*
-import uno.buffer.destroyBuffers
 import uno.glf.semantic
-import uno.gln.*
+import uno.gln.glUniform
+import uno.gln.glUseProgram
+import uno.gln.usingProgram
 import uno.glsl.Program
 
 
@@ -52,7 +51,7 @@ private class ModelLoading {
     var deltaTime = 0.0f    // time between current frame and last frame
     var lastFrame = 0.0f
 
-    val model: Model
+    val ourModel: Model
 
     init {
 
@@ -64,13 +63,13 @@ private class ModelLoading {
 
             //  Configure GLFW
             windowHint {
-                version = "3.3"
+                context.version = "3.3"
                 profile = "core"
             }
         }
 
         //  glfw window creation
-        window = GlfwWindow(800, 600, "Multiple Lights")
+        window = GlfwWindow(800, 600, "Model Loading")
 
         with(window) {
 
@@ -99,7 +98,7 @@ private class ModelLoading {
         program = ProgramA("shaders/c/", "model-loading")
 
         // load models
-        model = Model("objects/nanosuit/nanosuit.obj")
+        ourModel = Model("objects/nanosuit/nanosuit.obj")
     }
 
     inner class ProgramA(root: String, shader: String) : Program(ModelLoading::class.java, root, "$shader.vert", "$shader.frag") {
@@ -107,6 +106,10 @@ private class ModelLoading {
         val model = glGetUniformLocation(name, "model")
         val view = glGetUniformLocation(name, "view")
         val proj = glGetUniformLocation(name, "projection")
+
+        init {
+            usingProgram(this) { "texture_diffuse".location.int = semantic.sampler.DIFFUSE }
+        }
     }
 
     fun run() {
@@ -122,58 +125,25 @@ private class ModelLoading {
             //  input
             processInput(window)
 
-
             // render
             glClearColor(0.2f, 0.3f, 0.3f, 1.0f)
             glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
 
-            // be sure to activate shader when setting uniforms/drawing objects
-            glUseProgram(lighting)
-            glUniform(lighting.viewPos, camera.position)
-            glUniform(lighting.mtl.shininess, 32.0f)
-
+            // don't forget to enable shader before setting uniforms
+            glUseProgram(program)
 
             // view/projection transformations
             val projection = glm.perspective(camera.zoom.rad, window.aspect, 0.1f, 100.0f)
             val view = camera.viewMatrix
-            glUniform(lighting.proj, projection)
-            glUniform(lighting.view, view)
+            glUniform(program.proj, projection)
+            glUniform(program.view, view)
 
-            // bind diffuse map
-            glActiveTexture(GL_TEXTURE0 + semantic.sampler.DIFFUSE)
-            glBindTexture(GL_TEXTURE_2D, textures[Texture.Diffuse])
-            // bind specular map
-            glActiveTexture(GL_TEXTURE0 + semantic.sampler.SPECULAR)
-            glBindTexture(GL_TEXTURE_2D, textures[Texture.Specular])
-
-            // render containers
-            glBindVertexArray(vao[VA.Cube])
-            cubePositions.forEachIndexed { i, pos ->
-
-                // calculate the model matrix for each object and pass it to shader before drawing
-                val model = Mat4().translate(pos)
-                val angle = 20.0f * i
-                model.rotate_(angle.rad, 1.0f, 0.3f, 0.5f)
-                glUniform(lighting.model, model)
-
-                glDrawArrays(GL_TRIANGLES, 36)
-            }
-
-            // also draw the lamp object
-            glUseProgram(lamp)
-            glUniform(lamp.proj, projection)
-            glUniform(lamp.view, view)
-
-            // we now draw as many light bulbs as we have point lights.
-            glBindVertexArray(vao[VA.Light])
-            pointLightPositions.forEach {
-                val model = Mat4()
-                        .translate(it)
-                        .scale(0.2f) // Make it a smaller cube
-
-                glUniform(lamp.model, model)
-                glDrawArrays(GL_TRIANGLES, 36)
-            }
+            // render the loaded model
+            val model = Mat4()
+                    .translate(0.0f, -1.75f, 0.0f) // translate it down so it's at the center of the scene
+                    .scale(0.2f, 0.2f, 0.2f)    // it's a bit too big for our scene, so scale it down
+            glUniform(program.model, model)
+            ourModel.draw(true)
 
             //  glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
             window.swapBuffers()
@@ -183,12 +153,8 @@ private class ModelLoading {
 
     fun end() {
 
-        //  optional: de-allocate all resources once they've outlived their purpose:
-        glDeleteVertexArrays(vao)
-        glDeleteBuffers(vbo)
-        glDeleteTextures(textures)
-
-        destroyBuffers(vao, vbo, textures, vertices)
+//        glDeletePrograms(program)
+        ourModel.dispose()
 
         window.destroy()
         //  glfw: terminate, clearing all previously allocated GLFW resources.

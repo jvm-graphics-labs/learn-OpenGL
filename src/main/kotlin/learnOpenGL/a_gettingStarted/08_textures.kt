@@ -72,7 +72,7 @@ private class Textures {
 
             //  Configure GLFW
             glfw.windowHint {
-                version = "3.3"
+                context.version = "3.3"
                 profile = "core"
             }
         }

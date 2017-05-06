@@ -81,7 +81,7 @@ private class ShadersInterpolation {
 
             //  Configure GLFW
             learnOpenGL.common.glfw.windowHint {
-                version = "3.3"
+                context.version = "3.3"
                 profile = "core"
             }
         }

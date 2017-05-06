@@ -4,7 +4,6 @@ package learnOpenGL.b_lighting
  * Created by GBarbieri on 02.05.2017.
  */
 
-import gli.loadPNG
 import glm.*
 import glm.mat4x4.Mat4
 import glm.vec3.Vec3
@@ -148,7 +147,7 @@ private class MultipleLights {
 
             //  Configure GLFW
             windowHint {
-                version = "3.3"
+                context.version = "3.3"
                 profile = "core"
             }
         }
@@ -278,7 +277,7 @@ private class MultipleLights {
 
         val textureID = glGenTextures()
 
-        val texture = loadPNG(path)
+        val texture = gli.load(path)
         val format = gli.gl.translate(texture.format, texture.swizzles)
 
         glBindTexture(GL_TEXTURE_2D, textureID)

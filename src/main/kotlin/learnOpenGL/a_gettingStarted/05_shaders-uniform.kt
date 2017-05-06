@@ -86,7 +86,7 @@ private class ShadersUniform {
 
             //  Configure GLFW
             windowHint {
-                version = "3.3"
+                context.version = "3.3"
                 profile = "core"
             }
         }

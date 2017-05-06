@@ -2,21 +2,12 @@ package learnOpenGL.common
 
 import assimp.*
 import assimp.AiPostProcessSteps.*
-import glm.vec2.Vec2
-import org.lwjgl.opengl.GL11.*
-import org.lwjgl.opengl.GL30.glGenerateMipmap
-import uno.gln.glTexImage2D
 
 /**
  * Created by GBarbieri on 02.05.2017.
  */
 
-class Model(
-        path: String,
-        val program: Int,
-        val diffuseUnit: Int? = null,
-        val specularUnit: Int? = null,
-        val gammaCorrection: Boolean = false) {
+class Model(path: String) {
 
     /*  Model Data */
     val meshes = ArrayList<Mesh>()
@@ -25,7 +16,7 @@ class Model(
     init {
         // Read file via ASSIMP
         val importer = Importer()
-        val scene = importer.readFile(this::class.java, path, Triangulate.i or FlipUVs.i or CalcTangentSpace.i)
+        val scene = importer.readFile(this::class.java, path, Triangulate.i or FlipUVs.i or CalcTangentSpace.i) // TODO i
         // Check for errors
         if (scene == null) // if is Not Zero
 //        if(!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) // if is Not Zero
@@ -50,4 +41,8 @@ class Model(
             meshes += Mesh(it, scene)
         }
     }
+
+    fun draw(diffuse: Boolean = false, specular: Boolean = false) = meshes.forEach { it.draw(diffuse, specular) }
+
+    fun dispose() = meshes.forEach(Mesh::dispose)
 }
