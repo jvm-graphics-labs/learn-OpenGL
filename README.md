@@ -2,7 +2,7 @@
 
 Kotlin port of the tutorial of Joey De Vries: "Learn OpenGL" ([website](https://learnopengl.com/) and [repository](https://github.com/JoeyDeVries/LearnOpenGL))
 
-<img src="./src/main/resources/screenshot/screenshot1.png" height="250px"> 
+<img src="./src/main/resources/screenshot/screenshot1.png" height="300px"> 
 
 How to get it running:
 
