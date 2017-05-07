@@ -217,8 +217,8 @@ private class LightCastersPoint {
 
         // shader configuration
         usingProgram(lighting) {
-            "material.diffuse".location.int = semantic.sampler.DIFFUSE
-            "material.specular".location.int = semantic.sampler.SPECULAR
+            "material.diffuse".unit = semantic.sampler.DIFFUSE
+            "material.specular".unit = semantic.sampler.SPECULAR
         }
     }
 
@@ -353,6 +353,7 @@ private class LightCastersPoint {
     fun end() {
 
         //  optional: de-allocate all resources once they've outlived their purpose:
+        glDeletePrograms(lighting, lamp)
         glDeleteVertexArrays(vao)
         glDeleteBuffers(vbo)
         glDeleteTextures(textures)
@@ -370,14 +371,10 @@ private class LightCastersPoint {
         if (window.pressed(GLFW_KEY_ESCAPE))
             window.close = true
 
-        if (window.pressed(GLFW_KEY_W))
-            camera.processKeyboard(Forward, deltaTime)
-        if (window.pressed(GLFW_KEY_S))
-            camera.processKeyboard(Backward, deltaTime)
-        if (window.pressed(GLFW_KEY_A))
-            camera.processKeyboard(Left, deltaTime)
-        if (window.pressed(GLFW_KEY_D))
-            camera.processKeyboard(Right, deltaTime)
+        if (window.pressed(GLFW_KEY_W)) camera.processKeyboard(Forward, deltaTime)
+        if (window.pressed(GLFW_KEY_S)) camera.processKeyboard(Backward, deltaTime)
+        if (window.pressed(GLFW_KEY_A)) camera.processKeyboard(Left, deltaTime)
+        if (window.pressed(GLFW_KEY_D)) camera.processKeyboard(Right, deltaTime)
 
         // TODO up/down?
     }

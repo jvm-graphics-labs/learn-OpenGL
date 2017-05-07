@@ -247,8 +247,8 @@ private class CameraClass {
             /*  Tell opengl for each sampler to which texture unit it belongs to (only has to be done once)
             Code passed to usingProgram() {..] is executed using the given program, which at the end gets unbound   */
             usingProgram(name) {
-                "textureA".location.int = semantic.sampler.DIFFUSE_A
-                "textureB".location.int = semantic.sampler.DIFFUSE_B
+                "textureA".unit = semantic.sampler.DIFFUSE_A
+                "textureB".unit = semantic.sampler.DIFFUSE_B
             }
         }
     }
@@ -280,11 +280,11 @@ private class CameraClass {
 
                 // pass projection matrix to shader (note that in this case it could change every frame)
                 val projection = glm.perspective(camera.zoom.rad, 800.0f / 600.0f, 0.1f, 100.0f)
-                program.proj.mat4 = projection
+                projection to program.proj
 
                 // camera/view transformation
                 val view = camera.viewMatrix
-                program.view.mat4 = view
+                view to program.view
 
                 // render boxes
                 glBindVertexArray(vao)
@@ -294,7 +294,7 @@ private class CameraClass {
                     val model = Mat4() translate_ vec3
                     val angle = 20.0f * i
                     model.rotate_(angle.rad, 1.0f, 0.3f, 0.5f)
-                    program.model.mat4 = model
+                    model to program.model
 
                     glDrawArrays(GL_TRIANGLES, 36)
                 }
@@ -309,6 +309,7 @@ private class CameraClass {
     fun end() {
 
         //  optional: de-allocate all resources once they've outlived their purpose:
+        glDeleteProgram(program)
         glDeleteVertexArrays(vao)
         glDeleteBuffers(vbo)
         glDeleteTextures(textures)
@@ -326,14 +327,10 @@ private class CameraClass {
         if (window.pressed(GLFW_KEY_ESCAPE))
             window.close = true
 
-        if (window.pressed(GLFW_KEY_W))
-            camera.processKeyboard(Forward, deltaTime)
-        if (window.pressed(GLFW_KEY_S))
-            camera.processKeyboard(Backward, deltaTime)
-        if (window.pressed(GLFW_KEY_A))
-            camera.processKeyboard(Left, deltaTime)
-        if (window.pressed(GLFW_KEY_D))
-            camera.processKeyboard(Right, deltaTime)
+        if (window.pressed(GLFW_KEY_W)) camera.processKeyboard(Forward, deltaTime)
+        if (window.pressed(GLFW_KEY_S)) camera.processKeyboard(Backward, deltaTime)
+        if (window.pressed(GLFW_KEY_A)) camera.processKeyboard(Left, deltaTime)
+        if (window.pressed(GLFW_KEY_D)) camera.processKeyboard(Right, deltaTime)
 
         // TODO up/down?
     }

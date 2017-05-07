@@ -188,7 +188,7 @@ private class TexturesCombined {
                 glUniform1i(textureA_location, semantic.sampler.DIFFUSE_A)
 
                 // or set it via glNext
-                "textureB".location.int = semantic.sampler.DIFFUSE_B
+                "textureB".unit = semantic.sampler.DIFFUSE_B
             }
         }
     }
@@ -225,6 +225,7 @@ private class TexturesCombined {
     fun end() {
 
         //  optional: de-allocate all resources once they've outlived their purpose:
+        glDeleteProgram(program)
         glDeleteVertexArrays(vao)
         glDeleteBuffers(buffers)
         glDeleteTextures(textures)

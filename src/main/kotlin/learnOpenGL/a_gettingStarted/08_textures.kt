@@ -185,10 +185,12 @@ private class Textures {
     fun end() {
 
         //  optional: de-allocate all resources once they've outlived their purpose:
+        glDeleteProgram(program)
         glDeleteVertexArrays(vao)
         glDeleteBuffers(buffers)
+        glDeleteTextures(texture)
 
-        destroyBuffers(vao, buffers, vertices, indices)
+        destroyBuffers(vao, buffers, texture, vertices, indices)
 
         window.destroy()
         //  glfw: terminate, clearing all previously allocated GLFW resources.

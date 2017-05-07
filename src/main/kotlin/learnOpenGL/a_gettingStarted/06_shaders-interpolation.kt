@@ -185,6 +185,7 @@ private class ShadersInterpolation {
     fun end() {
 
         //  optional: de-allocate all resources once they've outlived their purpose:
+        glDeleteProgram(shaderProgram)
         glDeleteVertexArrays(vao)
         glDeleteBuffers(vbo)
 

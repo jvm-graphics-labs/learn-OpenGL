@@ -136,6 +136,7 @@ private class ShadersClass {
     fun end() {
 
         //  optional: de-allocate all resources once they've outlived their purpose:
+        glDeleteProgram(program)
         glDeleteVertexArrays(vao)
         glDeleteBuffers(vbo)
 

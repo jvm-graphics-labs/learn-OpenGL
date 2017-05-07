@@ -20,6 +20,7 @@ import org.lwjgl.opengl.GL
 import org.lwjgl.opengl.GL11.*
 import org.lwjgl.opengl.GL20.glGetUniformLocation
 import uno.glf.semantic
+import uno.gln.glDeletePrograms
 import uno.gln.glUniform
 import uno.gln.glUseProgram
 import uno.gln.usingProgram
@@ -108,7 +109,7 @@ private class ModelLoading {
         val proj = glGetUniformLocation(name, "projection")
 
         init {
-            usingProgram(this) { "texture_diffuse".location.int = semantic.sampler.DIFFUSE }
+            usingProgram(this) { "texture_diffuse".unit = semantic.sampler.DIFFUSE }
         }
     }
 
@@ -143,7 +144,7 @@ private class ModelLoading {
                     .translate(0.0f, -1.75f, 0.0f) // translate it down so it's at the center of the scene
                     .scale(0.2f, 0.2f, 0.2f)    // it's a bit too big for our scene, so scale it down
             glUniform(program.model, model)
-            ourModel.draw(true)
+            ourModel.draw(diffuse = true)
 
             //  glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
             window.swapBuffers()
@@ -153,7 +154,7 @@ private class ModelLoading {
 
     fun end() {
 
-//        glDeletePrograms(program)
+        glDeletePrograms(program)
         ourModel.dispose()
 
         window.destroy()
@@ -167,16 +168,10 @@ private class ModelLoading {
         if (window.pressed(GLFW_KEY_ESCAPE))
             window.close = true
 
-        if (window.pressed(GLFW_KEY_W))
-            camera.processKeyboard(Forward, deltaTime)
-        if (window.pressed(GLFW_KEY_S))
-            camera.processKeyboard(Backward, deltaTime)
-        if (window.pressed(GLFW_KEY_A))
-            camera.processKeyboard(Left, deltaTime)
-        if (window.pressed(GLFW_KEY_D))
-            camera.processKeyboard(Right, deltaTime)
-
-        // TODO up/down?
+        if (window.pressed(GLFW_KEY_W)) camera.processKeyboard(Forward, deltaTime)
+        if (window.pressed(GLFW_KEY_S)) camera.processKeyboard(Backward, deltaTime)
+        if (window.pressed(GLFW_KEY_A)) camera.processKeyboard(Left, deltaTime)
+        if (window.pressed(GLFW_KEY_D)) camera.processKeyboard(Right, deltaTime)
     }
 
     /** glfw: whenever the window size changed (by OS or user resize) this callback function executes   */

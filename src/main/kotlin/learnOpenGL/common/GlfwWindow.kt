@@ -37,7 +37,9 @@ class GlfwWindow(width: Int, height: Int, title: String) {
         }
     }
 
-    var close = false
+    var close
+        get() = glfwWindowShouldClose(handle)
+        set(value) = glfwSetWindowShouldClose(handle, value)
     val open get() = !close
 
     var title = title
@@ -94,6 +96,7 @@ class GlfwWindow(width: Int, height: Int, title: String) {
     val monitor get() = glfwGetWindowMonitor(handle)
     fun monitor(monitor: Long, xPos: Int, yPos: Int, width: Int, height: Int) =
             monitor(monitor, xPos, yPos, width, height, GLFW_DONT_CARE)
+
     fun monitor(monitor: Long, xPos: Int, yPos: Int, width: Int, height: Int, refreshRate: Int) =
             glfwSetWindowMonitor(handle, monitor, xPos, yPos, width, height, refreshRate)
 
@@ -104,7 +107,6 @@ class GlfwWindow(width: Int, height: Int, title: String) {
     val resizable get() = glfwGetWindowAttrib(handle, GLFW_RESIZABLE).bool
     val decorated get() = glfwGetWindowAttrib(handle, GLFW_DECORATED).bool
     val floating get() = glfwGetWindowAttrib(handle, GLFW_FLOATING).bool
-
 
 
     fun makeContextCurrent() = glfwMakeContextCurrent(handle)

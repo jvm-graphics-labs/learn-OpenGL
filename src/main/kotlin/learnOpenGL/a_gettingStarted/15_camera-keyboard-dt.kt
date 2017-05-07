@@ -230,7 +230,6 @@ private class CameraKeyboardDt {
         //glBindVertexArray()
     }
 
-
     inner class ProgramA(root: String, shader: String) : Program(CameraKeyboardDt::class.java, root, "$shader.vert", "$shader.frag") {
 
         val model = glGetUniformLocation(name, "model")
@@ -240,11 +239,11 @@ private class CameraKeyboardDt {
             /*  Tell opengl for each sampler to which texture unit it belongs to (only has to be done once)
             Code passed to usingProgram() {..] is executed using the given program, which at the end gets unbound   */
             usingProgram(name) {
-                "textureA".location.int = semantic.sampler.DIFFUSE_A
-                "textureB".location.int = semantic.sampler.DIFFUSE_B
+                "textureA".unit = semantic.sampler.DIFFUSE_A
+                "textureB".unit = semantic.sampler.DIFFUSE_B
 
                 // pass projection matrix to shader (as projection matrix rarely changes there's no need to do this per frame)
-                "projection".location.mat4 = glm.perspective(45.0f.rad, window.aspect, 0.1f, 100.0f)
+                glm.perspective(45.0f.rad, window.aspect, 0.1f, 100.0f) to "projection"
             }
         }
     }
@@ -275,7 +274,7 @@ private class CameraKeyboardDt {
             usingProgram(program) {
 
                 // camera/view transformation
-                program.view.mat4 = glm.lookAt(cameraPos, cameraPos + cameraFront, cameraUp)
+                glm.lookAt(cameraPos, cameraPos + cameraFront, cameraUp) to program.view
 
                 // render boxes
                 glBindVertexArray(vao)
@@ -285,7 +284,7 @@ private class CameraKeyboardDt {
                     val model = Mat4() translate_ vec3
                     val angle = 20.0f * i
                     model.rotate_(angle.rad, 1.0f, 0.3f, 0.5f)
-                    program.model.mat4 = model
+                    model to program.model
 
                     glDrawArrays(GL_TRIANGLES, 36)
                 }
@@ -300,6 +299,7 @@ private class CameraKeyboardDt {
     fun end() {
 
         //  optional: de-allocate all resources once they've outlived their purpose:
+        glDeleteProgram(program)
         glDeleteVertexArrays(vao)
         glDeleteBuffers(vbo)
         glDeleteTextures(textures)

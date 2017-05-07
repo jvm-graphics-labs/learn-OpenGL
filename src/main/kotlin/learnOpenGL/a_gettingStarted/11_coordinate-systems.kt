@@ -187,8 +187,8 @@ private class CoordinateSystems {
             /*  Tell opengl for each sampler to which texture unit it belongs to (only has to be done once)
             Code passed to usingProgram() {..] is executed using the given program, which at the end gets unbound   */
             usingProgram(name) {
-                "textureA".location.int = semantic.sampler.DIFFUSE_A
-                "textureB".location.int = semantic.sampler.DIFFUSE_B
+                "textureA".unit = semantic.sampler.DIFFUSE_A
+                "textureB".unit = semantic.sampler.DIFFUSE_B
             }
         }
     }
@@ -224,7 +224,7 @@ private class CoordinateSystems {
                 /*  note: currently we set the projection matrix each frame, but since the projection matrix rarely
                     changes it's often best practice to set it outside the main loop only once. Best place is the
                     framebuffer size callback   */
-                program.proj.mat4 = projection
+                projection to program.proj
 
                 //  render container
                 glBindVertexArray(vao)
@@ -240,6 +240,7 @@ private class CoordinateSystems {
     fun end() {
 
         //  optional: de-allocate all resources once they've outlived their purpose:
+        glDeleteProgram(program)
         glDeleteVertexArrays(vao)
         glDeleteBuffers(buffers)
         glDeleteTextures(textures)

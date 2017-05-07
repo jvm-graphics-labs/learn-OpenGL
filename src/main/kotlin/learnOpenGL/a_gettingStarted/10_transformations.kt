@@ -186,8 +186,8 @@ private class Transformations {
             /*  Tell opengl for each sampler to which texture unit it belongs to (only has to be done once)
             Code passed to usingProgram() {..] is executed using the given program, which at the end gets unbound   */
             usingProgram(name) {
-                "textureA".location.int = semantic.sampler.DIFFUSE_A
-                "textureB".location.int = semantic.sampler.DIFFUSE_B
+                "textureA".unit = semantic.sampler.DIFFUSE_A
+                "textureB".unit = semantic.sampler.DIFFUSE_B
             }
         }
     }
@@ -238,6 +238,7 @@ private class Transformations {
     fun end() {
 
         //  optional: de-allocate all resources once they've outlived their purpose:
+        glDeleteProgram(program)
         glDeleteVertexArrays(vao)
         glDeleteBuffers(buffers)
         glDeleteTextures(textures)

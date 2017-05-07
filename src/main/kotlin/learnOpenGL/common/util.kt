@@ -48,4 +48,3 @@ fun BufferedImage.flipY(): BufferedImage {
 
 fun glTexImage2D(target: Int, internalformat: Int, width: Int, height: Int, format: Int, type: Int, pixels: ByteBuffer) =
         GL11.glTexImage2D(target, 0, internalformat, width, height, 0, format, type, pixels)
-

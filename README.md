@@ -30,19 +30,19 @@ Status:
   - [x] 15, Camera Keyboard Dt
   - [x] 16, Camera Mouse Zoom
   - [x] 17, Camera Class
-- [ ] Chapter 2, Lighting
+- [x] Chapter 2, Lighting
   - [x] 01, Colors
   - [x] 02, Basic Lighting Diffuse
   - [x] 03, Basic Lighting Specular
   - [x] 04, Materials
   - [x] 05, Lighting Maps Diffuse
   - [x] 06, Lighting Maps Specular
-  - [ ] 07, Light Casters Directional
-  - [ ] 08, Light Casters Point
-  - [ ] 09, Light Casters Spot
-  - [ ] 10, Light Casters Spot Soft
-  - [ ] 11, Multiple Lights
-- [ ] Chapter 3, Model Loading
+  - [x] 07, Light Casters Directional
+  - [x] 08, Light Casters Point
+  - [x] 09, Light Casters Spot
+  - [x] 10, Light Casters Spot Soft
+  - [x] 11, Multiple Lights
+- [x] Chapter 3, Model Loading
 - [ ] Chapter 4, Advanced OpenGL
 - [ ] Chapter 5, Advanced Lighting
 - [ ] Chapter 6, PBR
