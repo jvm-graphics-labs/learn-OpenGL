@@ -44,5 +44,17 @@ Status:
   - [x] 11, Multiple Lights
 - [x] Chapter 3, Model Loading
 - [ ] Chapter 4, Advanced OpenGL
+  - [x] 01, Depth Testing
+  - [x] 02, Depth Testing View
+  - [x] 03, Stencil Testing
+  - [x] 04, Blending Discard
+  - [x] 05, Blending Sort
+  - [x] 06, Framebuffers
+  - [ ] 07, Cubemaps Skybox
+  - [ ] 08, Cubemaps Environment Mapping
+  - [ ] 09, Advanced Glsl Ubo
+  - [ ] 10, Geometry Shader Houses
+  - [ ] 11, Geometry Shader Exploding
+  - [ ] 12, Geometry Shader Normals
 - [ ] Chapter 5, Advanced Lighting
 - [ ] Chapter 6, PBR
