@@ -190,7 +190,7 @@ private class BasicLightingDiffuse {
         val lgtPos = glGetUniformLocation(name, "lightPos")
     }
 
-    inner open class Lamp(root: String, shader: String) : Program(BasicLightingDiffuse::class.java, root, "$shader.vert", "$shader.frag") {
+    inner open class Lamp(root: String, shader: String) : Program(root, "$shader.vert", "$shader.frag") {
 
         val model = glGetUniformLocation(name, "model")
         val view = glGetUniformLocation(name, "view")

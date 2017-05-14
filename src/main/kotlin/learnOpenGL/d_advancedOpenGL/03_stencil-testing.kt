@@ -1,7 +1,7 @@
 package learnOpenGL.d_advancedOpenGL
 
 /**
- * Created by elect on 06/05/2017.
+ * Created by elect on 13/05/17.
  */
 
 import glm.f
@@ -17,6 +17,7 @@ import learnOpenGL.common.Camera.Movement.*
 import learnOpenGL.common.GlfwWindow
 import learnOpenGL.common.GlfwWindow.Cursor.Disabled
 import learnOpenGL.common.glfw
+import learnOpenGL.common.loadTexture
 import org.lwjgl.glfw.GLFW.*
 import org.lwjgl.opengl.GL
 import org.lwjgl.opengl.GL11.*
@@ -36,18 +37,19 @@ import uno.glsl.Program
 
 fun main(args: Array<String>) {
 
-    with(DepthTesting()) {
+    with(StencilTesting()) {
 
         run()
         end()
     }
 }
 
-private class DepthTesting {
+private class StencilTesting {
 
     val window: GlfwWindow
 
-    val program: ProgramA
+    val program: ProgramB
+    val programSingleColor: ProgramA
 
     // settings
     val size = Vec2i(1280, 720)
@@ -144,7 +146,7 @@ private class DepthTesting {
         }
 
         //  glfw window creation
-        window = GlfwWindow(size, "Depth Testing")
+        window = GlfwWindow(size, "Depth Testing View")
 
         with(window) {
 
@@ -152,9 +154,9 @@ private class DepthTesting {
 
             show()   // Make the window visible
 
-            framebufferSizeCallback = this@DepthTesting::framebuffer_size_callback
-            cursorPosCallback = this@DepthTesting::mouse_callback
-            scrollCallback = this@DepthTesting::scroll_callback
+            framebufferSizeCallback = this@StencilTesting::framebuffer_size_callback
+            cursorPosCallback = this@StencilTesting::mouse_callback
+            scrollCallback = this@StencilTesting::scroll_callback
 
             // tell GLFW to capture our mouse
             cursor = Disabled
@@ -168,10 +170,14 @@ private class DepthTesting {
 
         // configure global opengl state
         glEnable(GL_DEPTH_TEST)
-        glDepthFunc(GL_ALWAYS) // always pass the depth test (same effect as glDisable(GL_DEPTH_TEST))
+        glDepthFunc(GL_LESS)
+        glEnable(GL_STENCIL_TEST)
+        glStencilFunc(GL_NOTEQUAL, 1, 0xFF)
+        glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE)
 
         // build and compile our shader program
-        program = ProgramA("shaders/d/_01", "depth-testing")
+        program = ProgramB("shaders/d/_03", "stencil-testing")
+        programSingleColor = ProgramA("shaders/d/_03", "stencil-testing.vert", "stencil-single-color.frag")
 
         glGenVertexArrays(vao)
         glGenBuffers(vbo)
@@ -193,33 +199,14 @@ private class DepthTesting {
         tex[Object.plane] = loadTexture("textures/metal.png")
     }
 
-    fun loadTexture(path: String): Int {
-
-        val textureID = glGenTextures()
-
-        val texture = gli.load(path)
-        val format = gli.gl.translate(texture.format, texture.swizzles)
-
-        glBindTexture(GL_TEXTURE_2D, textureID)
-        glTexImage2D(format, texture)
-        glGenerateMipmap(GL_TEXTURE_2D)
-
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT)
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT)
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR)
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
-
-        texture.dispose()
-
-        return textureID
-    }
-
-    inner class ProgramA(root: String, shader: String) : Program(root, "$shader.vert", "$shader.frag") {
+    inner open class ProgramA(root: String, vertex: String, fragment: String) : Program(root, vertex, fragment) {
 
         val model = glGetUniformLocation(name, "model")
         val view = glGetUniformLocation(name, "view")
         val proj = glGetUniformLocation(name, "projection")
+    }
 
+    inner class ProgramB(root: String, shader: String) : ProgramA(root, "$shader.vert", "$shader.frag") {
         init {
             usingProgram(this) { "texture1".unit = semantic.sampler.DIFFUSE }
         }
@@ -240,31 +227,67 @@ private class DepthTesting {
 
             // render
             glClearColor(0.1f, 0.1f, 0.1f, 1.0f)
-            glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
+            glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT or GL_STENCIL_BUFFER_BIT) // don't forget to clear the stencil buffer!
 
-            glUseProgram(program)
+            // set uniforms
+            glUseProgram(programSingleColor)
             var model = Mat4()
             val view = camera.viewMatrix
             val projection = glm.perspective(camera.zoom.rad, window.aspect, 0.1f, 100.0f)
+            glUniform(programSingleColor.proj, projection)
+            glUniform(programSingleColor.view, view)
+
+            glUseProgram(program)
             glUniform(program.proj, projection)
             glUniform(program.view, view)
 
-            // cubes
-            glBindVertexArray(vao[Object.cube])
-            glActiveTexture(GL_TEXTURE0 + semantic.sampler.DIFFUSE)
-            glBindTexture(GL_TEXTURE_2D, tex[Object.cube])
-            model = model.translate(-1.0f, 0.0f, -1.0f)
-            glUniform(program.model, model)
-            glDrawArrays(GL_TRIANGLES, 36)
-            model = Mat4().translate(2.0f, 0.0f, 0.0f)
-            glUniform(program.model, model)
-            glDrawArrays(GL_TRIANGLES, 36)
+            /*  draw floor as normal, but don't write the floor to the stencil buffer, we only care about the containers.
+                We set its mask to 0x00 to not write to the stencil buffer. */
+            glStencilMask(0x00)
             // floor
             glBindVertexArray(vao[Object.plane])
             glBindTexture(GL_TEXTURE_2D, tex[Object.plane])
             glUniform(program.model, model)
             glDrawArrays(GL_TRIANGLES, 6)
             glBindVertexArray()
+
+            // 1st. render pass, draw objects as normal, writing to the stencil buffer
+            glStencilFunc(GL_ALWAYS, 1, 0xFF)
+            glStencilMask(0xFF)
+            // cubes
+            glBindVertexArray(vao[Object.cube])
+            glActiveTexture(GL_TEXTURE0 + semantic.sampler.DIFFUSE)
+            glBindTexture(GL_TEXTURE_2D, tex[Object.cube])
+            model.translate_(-1.0f, 0.0f, -1.0f)
+            glUniform(program.model, model)
+            glDrawArrays(GL_TRIANGLES, 36)
+            model = Mat4().translate_(2.0f, 0.0f, 0.0f)
+            glUniform(program.model, model)
+            glDrawArrays(GL_TRIANGLES, 36)
+
+            /*  2nd. render pass: now draw slightly scaled versions of the objects, this time disabling stencil writing.
+                Because the stencil buffer is now filled with several 1s. The parts of the buffer that are 1 are not
+                drawn, thus only drawing the objects' size differences, making it look like borders.    */
+            glStencilFunc(GL_NOTEQUAL, 1, 0xFF)
+            glStencilMask(0x00)
+            glDisable(GL_DEPTH_TEST)
+            glUseProgram(programSingleColor)
+            val scale = 1.1f
+            // cubes
+            glBindVertexArray(vao[Object.cube])
+            model = Mat4()
+                    .translate_(-1.0f, 0.0f, -1.0f)
+                    .scale_(scale)
+            glUniform(programSingleColor.model, model)
+            glDrawArrays(GL_TRIANGLES, 36)
+            model = Mat4()
+                    .translate_(2.0f, 0.0f, 0.0f)
+                    .scale_(scale)
+            glUniform(programSingleColor.model, model)
+            glDrawArrays(GL_TRIANGLES, 36)
+            glBindVertexArray(0)
+            glStencilMask(0xFF)
+            glEnable(GL_DEPTH_TEST)
 
             //  glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
             window.swapBuffers()
@@ -274,7 +297,7 @@ private class DepthTesting {
 
     fun end() {
 
-        glDeletePrograms(program)
+        glDeletePrograms(program, programSingleColor)
         glDeleteVertexArrays(vao)
         glDeleteBuffers(vbo)
         glDeleteTextures(tex)

@@ -19,10 +19,7 @@ import org.lwjgl.opengl.GL20.*
 import org.lwjgl.opengl.GL30.*
 import uno.buffer.*
 import uno.glf.semantic
-import uno.gln.glBindVertexArray
-import uno.gln.glDrawElements
-import uno.gln.glVertexAttribPointer
-import uno.gln.usingProgram
+import uno.gln.*
 import uno.glsl.Program
 
 fun main(args: Array<String>) {
@@ -177,7 +174,7 @@ private class TexturesCombined {
         //glBindVertexArray()
     }
 
-    inner class ProgramA(root: String, shader: String) : Program(TexturesCombined::class.java, root, "$shader.vert", "$shader.frag") {
+    inner class ProgramA(root: String, shader: String) : Program(root, "$shader.vert", "$shader.frag") {
         init {
             /*  Tell opengl for each sampler to which texture unit it belongs to (only has to be done once)
             Code passed to usingProgram() {..] is executed using the given program, which at the end gets unbound   */

@@ -15,6 +15,7 @@ import learnOpenGL.common.Camera.Movement.*
 import learnOpenGL.common.GlfwWindow
 import learnOpenGL.common.GlfwWindow.Cursor.Disabled
 import learnOpenGL.common.glfw
+import learnOpenGL.common.loadTexture
 import org.lwjgl.glfw.GLFW.*
 import org.lwjgl.opengl.GL
 import org.lwjgl.opengl.GL11.*
@@ -215,32 +216,11 @@ private class LightingMapsDiffuse {
         }
     }
 
-    inner open class Lamp(root: String, shader: String) : Program(LightingMapsDiffuse::class.java, root, "$shader.vert", "$shader.frag") {
+    inner open class Lamp(root: String, shader: String) : Program(root, "$shader.vert", "$shader.frag") {
 
         val model = glGetUniformLocation(name, "model")
         val view = glGetUniformLocation(name, "view")
         val proj = glGetUniformLocation(name, "projection")
-    }
-
-    fun loadTexture(path: String): Int {
-
-        val textureID = glGenTextures()
-
-        val texture = gli.load(path)
-        val format = gli.gl.translate(texture.format, texture.swizzles)
-
-        glBindTexture(GL_TEXTURE_2D, textureID)
-        glTexImage2D(format, texture)
-        glGenerateMipmap(GL_TEXTURE_2D)
-
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT)
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT)
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR)
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
-
-        texture.dispose()
-
-        return textureID
     }
 
     fun run() {

@@ -18,10 +18,7 @@ import org.lwjgl.opengl.GL20.*
 import org.lwjgl.opengl.GL30.*
 import uno.buffer.*
 import uno.glf.semantic
-import uno.gln.glBindTexture
-import uno.gln.glBindVertexArray
-import uno.gln.glDrawElements
-import uno.gln.glVertexAttribPointer
+import uno.gln.*
 import uno.glsl.Program
 
 fun main(args: Array<String>) {
@@ -147,7 +144,7 @@ private class Textures {
         //glBindVertexArray()
     }
 
-    class ProgramA(root: String, shader: String) : Program(Textures::class.java, root, "$shader.vert", "$shader.frag") {
+    class ProgramA(root: String, shader: String) : Program(root, "$shader.vert", "$shader.frag") {
         init {
             glUniform1i(
                     glGetUniformLocation(name, "textureA"),

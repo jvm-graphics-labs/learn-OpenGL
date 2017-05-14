@@ -178,7 +178,7 @@ private class Transformations {
 
     }
 
-    inner class ProgramA(root: String, shader: String) : Program(Transformations::class.java, root, "$shader.vert", "$shader.frag") {
+    inner class ProgramA(root: String, shader: String) : Program(root, "$shader.vert", "$shader.frag") {
 
         val transform = glGetUniformLocation(name, "transform") // get matrix's uniform location
 

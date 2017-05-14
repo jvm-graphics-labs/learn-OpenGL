@@ -185,7 +185,7 @@ private class Colors {
         val lgtCol = glGetUniformLocation(name, "lightColor")
     }
 
-    inner open class Lamp(root: String, shader: String) : Program(Colors::class.java, root, "$shader.vert", "$shader.frag") {
+    inner open class Lamp(root: String, shader: String) : Program(root, "$shader.vert", "$shader.frag") {
 
         val model = glGetUniformLocation(name, "model")
         val view = glGetUniformLocation(name, "view")

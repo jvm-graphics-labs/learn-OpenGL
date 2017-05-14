@@ -1,7 +1,7 @@
 package learnOpenGL.d_advancedOpenGL
 
 /**
- * Created by elect on 06/05/2017.
+ * Created by elect on 13/05/17.
  */
 
 import glm.f
@@ -17,6 +17,7 @@ import learnOpenGL.common.Camera.Movement.*
 import learnOpenGL.common.GlfwWindow
 import learnOpenGL.common.GlfwWindow.Cursor.Disabled
 import learnOpenGL.common.glfw
+import learnOpenGL.common.loadTexture
 import org.lwjgl.glfw.GLFW.*
 import org.lwjgl.opengl.GL
 import org.lwjgl.opengl.GL11.*
@@ -36,14 +37,14 @@ import uno.glsl.Program
 
 fun main(args: Array<String>) {
 
-    with(DepthTesting()) {
+    with(BlendingSort()) {
 
         run()
         end()
     }
 }
 
-private class DepthTesting {
+private class BlendingSort {
 
     val window: GlfwWindow
 
@@ -64,7 +65,8 @@ private class DepthTesting {
     object Object {
         val cube = 0
         val plane = 1
-        val MAX = 2
+        val transparent = 2
+        val MAX = 3
     }
 
     val vao = intBufferBig(Object.MAX)
@@ -73,60 +75,80 @@ private class DepthTesting {
 
     // set up vertex data (and buffer(s)) and configure vertex attributes
     // ------------------------------------------------------------------
-    val cubeVertices = floatBufferOf(
-            // positions         // texture Coords
-            -0.5f, -0.5f, -0.5f, 0.0f, 0.0f,
-            +0.5f, -0.5f, -0.5f, 1.0f, 0.0f,
-            +0.5f, +0.5f, -0.5f, 1.0f, 1.0f,
-            +0.5f, +0.5f, -0.5f, 1.0f, 1.0f,
-            -0.5f, +0.5f, -0.5f, 0.0f, 1.0f,
-            -0.5f, -0.5f, -0.5f, 0.0f, 0.0f,
+    val vertices = arrayOf(
 
-            -0.5f, -0.5f, +0.5f, 0.0f, 0.0f,
-            +0.5f, -0.5f, +0.5f, 1.0f, 0.0f,
-            +0.5f, +0.5f, +0.5f, 1.0f, 1.0f,
-            +0.5f, +0.5f, +0.5f, 1.0f, 1.0f,
-            -0.5f, +0.5f, +0.5f, 0.0f, 1.0f,
-            -0.5f, -0.5f, +0.5f, 0.0f, 0.0f,
+            floatBufferOf(
+                    // positions         // texture Coords
+                    -0.5f, -0.5f, -0.5f, 0.0f, 0.0f,
+                    +0.5f, -0.5f, -0.5f, 1.0f, 0.0f,
+                    +0.5f, +0.5f, -0.5f, 1.0f, 1.0f,
+                    +0.5f, +0.5f, -0.5f, 1.0f, 1.0f,
+                    -0.5f, +0.5f, -0.5f, 0.0f, 1.0f,
+                    -0.5f, -0.5f, -0.5f, 0.0f, 0.0f,
 
-            -0.5f, +0.5f, +0.5f, 1.0f, 0.0f,
-            -0.5f, +0.5f, -0.5f, 1.0f, 1.0f,
-            -0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
-            -0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
-            -0.5f, -0.5f, +0.5f, 0.0f, 0.0f,
-            -0.5f, +0.5f, +0.5f, 1.0f, 0.0f,
+                    -0.5f, -0.5f, +0.5f, 0.0f, 0.0f,
+                    +0.5f, -0.5f, +0.5f, 1.0f, 0.0f,
+                    +0.5f, +0.5f, +0.5f, 1.0f, 1.0f,
+                    +0.5f, +0.5f, +0.5f, 1.0f, 1.0f,
+                    -0.5f, +0.5f, +0.5f, 0.0f, 1.0f,
+                    -0.5f, -0.5f, +0.5f, 0.0f, 0.0f,
 
-            +0.5f, +0.5f, +0.5f, 1.0f, 0.0f,
-            +0.5f, +0.5f, -0.5f, 1.0f, 1.0f,
-            +0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
-            +0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
-            +0.5f, -0.5f, +0.5f, 0.0f, 0.0f,
-            +0.5f, +0.5f, +0.5f, 1.0f, 0.0f,
+                    -0.5f, +0.5f, +0.5f, 1.0f, 0.0f,
+                    -0.5f, +0.5f, -0.5f, 1.0f, 1.0f,
+                    -0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
+                    -0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
+                    -0.5f, -0.5f, +0.5f, 0.0f, 0.0f,
+                    -0.5f, +0.5f, +0.5f, 1.0f, 0.0f,
 
-            -0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
-            +0.5f, -0.5f, -0.5f, 1.0f, 1.0f,
-            +0.5f, -0.5f, +0.5f, 1.0f, 0.0f,
-            +0.5f, -0.5f, +0.5f, 1.0f, 0.0f,
-            -0.5f, -0.5f, +0.5f, 0.0f, 0.0f,
-            -0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
+                    +0.5f, +0.5f, +0.5f, 1.0f, 0.0f,
+                    +0.5f, +0.5f, -0.5f, 1.0f, 1.0f,
+                    +0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
+                    +0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
+                    +0.5f, -0.5f, +0.5f, 0.0f, 0.0f,
+                    +0.5f, +0.5f, +0.5f, 1.0f, 0.0f,
 
-            -0.5f, +0.5f, -0.5f, 0.0f, 1.0f,
-            +0.5f, +0.5f, -0.5f, 1.0f, 1.0f,
-            +0.5f, +0.5f, +0.5f, 1.0f, 0.0f,
-            +0.5f, +0.5f, +0.5f, 1.0f, 0.0f,
-            -0.5f, +0.5f, +0.5f, 0.0f, 0.0f,
-            -0.5f, +0.5f, -0.5f, 0.0f, 1.0f)
+                    -0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
+                    +0.5f, -0.5f, -0.5f, 1.0f, 1.0f,
+                    +0.5f, -0.5f, +0.5f, 1.0f, 0.0f,
+                    +0.5f, -0.5f, +0.5f, 1.0f, 0.0f,
+                    -0.5f, -0.5f, +0.5f, 0.0f, 0.0f,
+                    -0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
 
-    val planeVertices = floatBufferOf(
-            // positions         // texture Coords (note we set these higher than 1 (together with GL_REPEAT as texture
-            //                      wrapping mode). this will cause the floor texture to repeat)
-            +5.0f, -0.5f, +5.0f, 2.0f, 0.0f,
-            -5.0f, -0.5f, +5.0f, 0.0f, 0.0f,
-            -5.0f, -0.5f, -5.0f, 0.0f, 2.0f,
+                    -0.5f, +0.5f, -0.5f, 0.0f, 1.0f,
+                    +0.5f, +0.5f, -0.5f, 1.0f, 1.0f,
+                    +0.5f, +0.5f, +0.5f, 1.0f, 0.0f,
+                    +0.5f, +0.5f, +0.5f, 1.0f, 0.0f,
+                    -0.5f, +0.5f, +0.5f, 0.0f, 0.0f,
+                    -0.5f, +0.5f, -0.5f, 0.0f, 1.0f),
 
-            +5.0f, -0.5f, +5.0f, 2.0f, 0.0f,
-            -5.0f, -0.5f, -5.0f, 0.0f, 2.0f,
-            +5.0f, -0.5f, -5.0f, 2.0f, 2.0f)
+            floatBufferOf(
+                    // positions         // texture Coords (note we set these higher than 1 (together with GL_REPEAT as
+                    //                      texture wrapping mode). this will cause the floor texture to repeat)
+                    +5.0f, -0.5f, +5.0f, 2.0f, 0.0f,
+                    -5.0f, -0.5f, +5.0f, 0.0f, 0.0f,
+                    -5.0f, -0.5f, -5.0f, 0.0f, 2.0f,
+
+                    +5.0f, -0.5f, +5.0f, 2.0f, 0.0f,
+                    -5.0f, -0.5f, -5.0f, 0.0f, 2.0f,
+                    +5.0f, -0.5f, -5.0f, 2.0f, 2.0f),
+
+            floatBufferOf(
+                    // positions       // texture Coords
+                    0.0f, +0.5f, 0.0f, 0.0f, 1.0f,
+                    0.0f, -0.5f, 0.0f, 0.0f, 0.0f,
+                    1.0f, -0.5f, 0.0f, 1.0f, 0.0f,
+
+                    0.0f, +0.5f, 0.0f, 0.0f, 1.0f,
+                    1.0f, -0.5f, 0.0f, 1.0f, 0.0f,
+                    1.0f, +0.5f, 0.0f, 1.0f, 1.0f))
+
+    // transparent window locations
+    val windows = arrayOf(
+            Vec3(-1.5f, 0.0f, -0.48f),
+            Vec3(+1.5f, 0.0f, +0.51f),
+            Vec3(+0.0f, 0.0f, +0.7f),
+            Vec3(-0.3f, 0.0f, -2.3f),
+            Vec3(+0.5f, 0.0f, -0.6f))
 
     init {
 
@@ -144,7 +166,7 @@ private class DepthTesting {
         }
 
         //  glfw window creation
-        window = GlfwWindow(size, "Depth Testing")
+        window = GlfwWindow(size, "Blending Sort")
 
         with(window) {
 
@@ -152,9 +174,9 @@ private class DepthTesting {
 
             show()   // Make the window visible
 
-            framebufferSizeCallback = this@DepthTesting::framebuffer_size_callback
-            cursorPosCallback = this@DepthTesting::mouse_callback
-            scrollCallback = this@DepthTesting::scroll_callback
+            framebufferSizeCallback = this@BlendingSort::framebuffer_size_callback
+            cursorPosCallback = this@BlendingSort::mouse_callback
+            scrollCallback = this@BlendingSort::scroll_callback
 
             // tell GLFW to capture our mouse
             cursor = Disabled
@@ -168,19 +190,20 @@ private class DepthTesting {
 
         // configure global opengl state
         glEnable(GL_DEPTH_TEST)
-        glDepthFunc(GL_ALWAYS) // always pass the depth test (same effect as glDisable(GL_DEPTH_TEST))
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
         // build and compile our shader program
-        program = ProgramA("shaders/d/_01", "depth-testing")
+        program = ProgramA("shaders/d/_04", "blending")
 
         glGenVertexArrays(vao)
         glGenBuffers(vbo)
 
-        for (i in 0..Object.plane) {
+        for (i in 0..Object.transparent) {
 
             glBindVertexArray(vao[i])
             glBindBuffer(GL_ARRAY_BUFFER, vbo[i])
-            glBufferData(GL_ARRAY_BUFFER, if (i == Object.cube) cubeVertices else planeVertices, GL_STATIC_DRAW)
+            glBufferData(GL_ARRAY_BUFFER, vertices[i], GL_STATIC_DRAW)
             glEnableVertexAttribArray(glf.pos3_tc2)
             glVertexAttribPointer(glf.pos3_tc2)
             glEnableVertexAttribArray(glf.pos3_tc2[1])
@@ -191,30 +214,10 @@ private class DepthTesting {
         // load textures
         tex[Object.cube] = loadTexture("textures/marble.jpg")
         tex[Object.plane] = loadTexture("textures/metal.png")
+        tex[Object.transparent] = loadTexture("textures/window.png")
     }
 
-    fun loadTexture(path: String): Int {
-
-        val textureID = glGenTextures()
-
-        val texture = gli.load(path)
-        val format = gli.gl.translate(texture.format, texture.swizzles)
-
-        glBindTexture(GL_TEXTURE_2D, textureID)
-        glTexImage2D(format, texture)
-        glGenerateMipmap(GL_TEXTURE_2D)
-
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT)
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT)
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR)
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
-
-        texture.dispose()
-
-        return textureID
-    }
-
-    inner class ProgramA(root: String, shader: String) : Program(root, "$shader.vert", "$shader.frag") {
+    inner open class ProgramA(root: String, shader: String) : Program(root, "$shader.vert", "$shader.frag") {
 
         val model = glGetUniformLocation(name, "model")
         val view = glGetUniformLocation(name, "view")
@@ -238,14 +241,18 @@ private class DepthTesting {
             //  input
             processInput(window)
 
+            // sort the transparent windows before rendering
+            val sorted = windows.sortedByDescending { glm.length(camera.position - it) }
+
             // render
             glClearColor(0.1f, 0.1f, 0.1f, 1.0f)
             glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
 
+            // draw objects
             glUseProgram(program)
-            var model = Mat4()
-            val view = camera.viewMatrix
             val projection = glm.perspective(camera.zoom.rad, window.aspect, 0.1f, 100.0f)
+            val view = camera.viewMatrix
+            var model = Mat4()
             glUniform(program.proj, projection)
             glUniform(program.view, view)
 
@@ -253,18 +260,29 @@ private class DepthTesting {
             glBindVertexArray(vao[Object.cube])
             glActiveTexture(GL_TEXTURE0 + semantic.sampler.DIFFUSE)
             glBindTexture(GL_TEXTURE_2D, tex[Object.cube])
-            model = model.translate(-1.0f, 0.0f, -1.0f)
+            model.translate_(-1.0f, 0.0f, -1.0f)
             glUniform(program.model, model)
             glDrawArrays(GL_TRIANGLES, 36)
-            model = Mat4().translate(2.0f, 0.0f, 0.0f)
+            model = Mat4()
+                    .translate_(2.0f, 0.0f, 0.0f)
             glUniform(program.model, model)
             glDrawArrays(GL_TRIANGLES, 36)
+
             // floor
             glBindVertexArray(vao[Object.plane])
             glBindTexture(GL_TEXTURE_2D, tex[Object.plane])
+            model = Mat4()
             glUniform(program.model, model)
             glDrawArrays(GL_TRIANGLES, 6)
-            glBindVertexArray()
+
+            // windows (from furthest to nearest)
+            glBindVertexArray(vao[Object.transparent])
+            glBindTexture(GL_TEXTURE_2D, tex[Object.transparent])
+            sorted.forEach {
+                model = Mat4().translate_(it)
+                glUniform(program.model, model)
+                glDrawArrays(GL_TRIANGLES, 6)
+            }
 
             //  glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
             window.swapBuffers()
@@ -274,12 +292,12 @@ private class DepthTesting {
 
     fun end() {
 
-        glDeletePrograms(program)
+        glDeleteProgram(program)
         glDeleteVertexArrays(vao)
         glDeleteBuffers(vbo)
         glDeleteTextures(tex)
 
-        destroyBuffers(vao, vbo, tex, cubeVertices, planeVertices)
+        destroyBuffers(vao, vbo, tex, *vertices)
 
         window.destroy()
         //  glfw: terminate, clearing all previously allocated GLFW resources.

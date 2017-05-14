@@ -15,8 +15,8 @@ class Model(path: String) {
     /** Loads a model with supported ASSIMP extensions from file and stores the resulting meshes in the meshes vector.  */
     init {
         // Read file via ASSIMP
-        val importer = Importer()
-        val scene = importer.readFile(this::class.java, path, Triangulate.i or FlipUVs.i or CalcTangentSpace.i) // TODO i
+        // TODO i and check class if needed
+        val scene = Importer().readFile(this::class.java, path, Triangulate.i or FlipUVs.i or CalcTangentSpace.i)
         // Check for errors
         if (scene == null) // if is Not Zero
 //        if(!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) // if is Not Zero

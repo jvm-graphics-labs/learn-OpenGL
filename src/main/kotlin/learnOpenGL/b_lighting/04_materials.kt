@@ -205,7 +205,7 @@ private class Materials {
         }
     }
 
-    inner open class Lamp(root: String, shader: String) : Program(Materials::class.java, root, "$shader.vert", "$shader.frag") {
+    inner open class Lamp(root: String, shader: String) : Program(root, "$shader.vert", "$shader.frag") {
 
         val model = glGetUniformLocation(name, "model")
         val view = glGetUniformLocation(name, "view")

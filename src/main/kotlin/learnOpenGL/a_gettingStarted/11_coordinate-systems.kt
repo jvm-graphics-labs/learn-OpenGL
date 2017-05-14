@@ -177,7 +177,7 @@ private class CoordinateSystems {
         //glBindVertexArray()
     }
 
-    inner class ProgramA(root: String, shader: String) : Program(CoordinateSystems::class.java, root, "$shader.vert", "$shader.frag") {
+    inner class ProgramA(root: String, shader: String) : Program(root, "$shader.vert", "$shader.frag") {
 
         val model = glGetUniformLocation(name, "model")
         val view = glGetUniformLocation(name, "view")
