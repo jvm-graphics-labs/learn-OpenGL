@@ -16,6 +16,11 @@ object glfw {
         GLFWErrorCallback.createPrint(System.err).set()
         if (!glfwInit())
             throw IllegalStateException("Unable to initialize GLFW")
+        
+        /* This window hint is required to use OpenGL 3.1+ on macOS */
+        windowHint {
+            forwardComp = true
+        }
     }
 
     fun windowHint(block: windowHint.() -> Unit) = windowHint.block()
