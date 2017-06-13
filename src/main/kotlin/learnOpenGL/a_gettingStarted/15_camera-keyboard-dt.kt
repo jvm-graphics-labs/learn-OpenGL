@@ -4,11 +4,11 @@ package learnOpenGL.a_gettingStarted
  * Created by elect on 26/04/17.
  */
 
-import glm.glm
-import glm.mat4x4.Mat4
-import glm.rad
-import glm.vec2.Vec2
-import glm.vec3.Vec3
+import glm_.glm
+import glm_.mat4x4.Mat4
+import glm_.rad
+import glm_.vec2.Vec2
+import glm_.vec3.Vec3
 import learnOpenGL.common.*
 import org.lwjgl.glfw.GLFW.*
 import org.lwjgl.opengl.EXTABGR
@@ -26,8 +26,10 @@ import uno.buffer.floatBufferOf
 import uno.buffer.intBufferBig
 import uno.glf.semantic
 import uno.gln.*
-import glm.vec3.operators.times
+import glm_.vec3.operators.times
 import org.lwjgl.opengl.GL20.glGetUniformLocation
+import uno.glfw.GlfwWindow
+import uno.glfw.glfw
 import uno.glsl.Program
 
 

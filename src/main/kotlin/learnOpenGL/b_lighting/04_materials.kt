@@ -4,17 +4,17 @@ package learnOpenGL.b_lighting
  * Created by GBarbieri on 28.04.2017.
  */
 
-import glm.f
-import glm.glm
-import glm.glm.sin
-import glm.mat4x4.Mat4
-import glm.rad
-import glm.vec3.Vec3
+import glm_.f
+import glm_.glm
+import glm_.glm.sin
+import glm_.mat4x4.Mat4
+import glm_.rad
+import glm_.vec3.Vec3
 import learnOpenGL.common.Camera
 import learnOpenGL.common.Camera.Movement.*
-import learnOpenGL.common.GlfwWindow
-import learnOpenGL.common.GlfwWindow.Cursor.Disabled
-import learnOpenGL.common.glfw
+import uno.glfw.GlfwWindow
+import uno.glfw.GlfwWindow.Cursor.Disabled
+import uno.glfw.glfw
 import org.lwjgl.glfw.GLFW.*
 import org.lwjgl.opengl.GL
 import org.lwjgl.opengl.GL11.*

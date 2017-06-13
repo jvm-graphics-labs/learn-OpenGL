@@ -4,10 +4,10 @@ package learnOpenGL.a_gettingStarted
  * Created by GBarbieri on 24.04.2017.
  */
 
-import glm.glm.sin
-import glm.vec3.Vec3
-import learnOpenGL.common.GlfwWindow
-import learnOpenGL.common.glfw
+import glm_.glm.sin
+import glm_.vec3.Vec3
+import uno.glfw.GlfwWindow
+import uno.glfw.glfw
 import org.lwjgl.glfw.GLFW.GLFW_KEY_ESCAPE
 import org.lwjgl.opengl.GL
 import org.lwjgl.opengl.GL11.*

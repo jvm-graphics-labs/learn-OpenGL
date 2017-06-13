@@ -4,7 +4,7 @@ package learnOpenGL.a_gettingStarted
  * Created by GBarbieri on 24.04.2017.
  */
 
-import glm.vec3.Vec3
+import glm_.vec3.Vec3
 import org.lwjgl.glfw.GLFW.GLFW_KEY_ESCAPE
 import org.lwjgl.opengl.GL11.*
 import org.lwjgl.opengl.GL15.*
@@ -12,6 +12,8 @@ import org.lwjgl.opengl.GL20.*
 import org.lwjgl.opengl.GL30.glDeleteVertexArrays
 import org.lwjgl.opengl.GL30.glGenVertexArrays
 import uno.glf.semantic
+import uno.glfw.GlfwWindow
+import uno.glfw.glfw
 
 fun main(args: Array<String>) {
 
@@ -24,7 +26,7 @@ fun main(args: Array<String>) {
 
 private class ShadersInterpolation {
 
-    val window: learnOpenGL.common.GlfwWindow
+    val window: GlfwWindow
 
     val vertexShaderSource = """
         #version 330 core
@@ -73,21 +75,21 @@ private class ShadersInterpolation {
 
     init {
 
-        with(learnOpenGL.common.glfw) {
+        with(glfw) {
 
             /*  Initialize GLFW. Most GLFW functions will not work before doing this.
                 It also setups an error callback. The default implementation will print the error message in System.err.    */
-            learnOpenGL.common.glfw.init()
+            init()
 
             //  Configure GLFW
-            learnOpenGL.common.glfw.windowHint {
+            windowHint {
                 context.version = "3.3"
                 profile = "core"
             }
         }
 
         //  glfw window creation
-        window = learnOpenGL.common.GlfwWindow(800, 600, "Shaders Interpolation")
+        window = GlfwWindow(800, 600, "Shaders Interpolation")
 
         with(window) {
 
@@ -178,7 +180,7 @@ private class ShadersInterpolation {
 
             //  glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
             window.swapBuffers()
-            learnOpenGL.common.glfw.pollEvents()
+            glfw.pollEvents()
         }
     }
 
@@ -193,11 +195,11 @@ private class ShadersInterpolation {
 
         window.destroy()
         //  glfw: terminate, clearing all previously allocated GLFW resources.
-        learnOpenGL.common.glfw.terminate()
+        glfw.terminate()
     }
 
     /** process all input: query GLFW whether relevant keys are pressed/released this frame and react accordingly   */
-    fun processInput(window: learnOpenGL.common.GlfwWindow) {
+    fun processInput(window: GlfwWindow) {
 
         if (window.pressed(GLFW_KEY_ESCAPE))
             window.close = true

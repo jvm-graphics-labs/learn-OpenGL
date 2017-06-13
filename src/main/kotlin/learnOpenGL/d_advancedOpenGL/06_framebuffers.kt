@@ -4,19 +4,19 @@ package learnOpenGL.d_advancedOpenGL
  * Created by elect on 13/05/17.
  */
 
-import glm.f
-import glm.glm
-import glm.mat4x4.Mat4
-import glm.rad
-import glm.set
-import glm.vec2.Vec2
-import glm.vec2.Vec2i
-import glm.vec3.Vec3
+import glm_.f
+import glm_.glm
+import glm_.mat4x4.Mat4
+import glm_.rad
+import glm_.set
+import glm_.vec2.Vec2
+import glm_.vec2.Vec2i
+import glm_.vec3.Vec3
 import learnOpenGL.common.Camera
 import learnOpenGL.common.Camera.Movement.*
-import learnOpenGL.common.GlfwWindow
-import learnOpenGL.common.GlfwWindow.Cursor.Disabled
-import learnOpenGL.common.glfw
+import uno.glfw.GlfwWindow
+import uno.glfw.GlfwWindow.Cursor.Disabled
+import uno.glfw.glfw
 import learnOpenGL.common.loadTexture
 import org.lwjgl.glfw.GLFW.*
 import org.lwjgl.opengl.GL

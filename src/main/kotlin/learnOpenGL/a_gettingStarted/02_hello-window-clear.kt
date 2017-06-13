@@ -4,8 +4,8 @@ package learnOpenGL.a_gettingStarted
  * Created by GBarbieri on 24.04.2017.
  */
 
-import learnOpenGL.common.GlfwWindow
-import learnOpenGL.common.glfw
+import uno.glfw.GlfwWindow
+import uno.glfw.glfw
 import org.lwjgl.glfw.GLFW.GLFW_KEY_ESCAPE
 import org.lwjgl.opengl.GL
 import org.lwjgl.opengl.GL11.*

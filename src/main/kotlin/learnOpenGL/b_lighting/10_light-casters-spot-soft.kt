@@ -5,14 +5,14 @@ package learnOpenGL.b_lighting
  */
 
 import gli.loadImage
-import glm.*
-import glm.mat4x4.Mat4
-import glm.vec3.Vec3
+import glm_.*
+import glm_.mat4x4.Mat4
+import glm_.vec3.Vec3
 import learnOpenGL.common.Camera
 import learnOpenGL.common.Camera.Movement.*
-import learnOpenGL.common.GlfwWindow
-import learnOpenGL.common.GlfwWindow.Cursor.Disabled
-import learnOpenGL.common.glfw
+import uno.glfw.GlfwWindow
+import uno.glfw.GlfwWindow.Cursor.Disabled
+import uno.glfw.glfw
 import learnOpenGL.common.loadTexture
 import org.lwjgl.glfw.GLFW.*
 import org.lwjgl.opengl.GL

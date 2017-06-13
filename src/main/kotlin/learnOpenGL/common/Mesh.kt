@@ -4,7 +4,7 @@ import assimp.AiMaterial
 import assimp.AiMesh
 import assimp.AiScene
 import assimp.AiTexture
-import glm.set
+import glm_.set
 import org.lwjgl.opengl.GL11.*
 import org.lwjgl.opengl.GL13.GL_TEXTURE0
 import org.lwjgl.opengl.GL13.glActiveTexture

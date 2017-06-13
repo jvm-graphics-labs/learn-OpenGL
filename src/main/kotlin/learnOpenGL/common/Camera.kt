@@ -1,10 +1,10 @@
 package learnOpenGL.common
 
-import glm.cos
-import glm.glm
-import glm.rad
-import glm.sin
-import glm.vec3.Vec3
+import glm_.cos
+import glm_.glm
+import glm_.rad
+import glm_.sin
+import glm_.vec3.Vec3
 import learnOpenGL.common.Camera.Movement.*
 
 /**

@@ -4,13 +4,13 @@ package learnOpenGL.a_gettingStarted
  * Created by elect on 26/04/17.
  */
 
-import glm.glm
-import glm.glm.sin
-import glm.glm.cos
-import glm.mat4x4.Mat4
-import glm.rad
-import glm.vec2.Vec2
-import glm.vec3.Vec3
+import glm_.glm
+import glm_.glm.sin
+import glm_.glm.cos
+import glm_.mat4x4.Mat4
+import glm_.rad
+import glm_.vec2.Vec2
+import glm_.vec3.Vec3
 import learnOpenGL.common.*
 import org.lwjgl.glfw.GLFW.GLFW_KEY_ESCAPE
 import org.lwjgl.opengl.EXTABGR
@@ -28,6 +28,8 @@ import uno.buffer.destroyBuffers
 import uno.buffer.floatBufferOf
 import uno.buffer.intBufferBig
 import uno.glf.semantic
+import uno.glfw.GlfwWindow
+import uno.glfw.glfw
 import uno.gln.*
 import uno.glsl.Program
 

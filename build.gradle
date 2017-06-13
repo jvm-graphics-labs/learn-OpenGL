@@ -4,7 +4,7 @@ apply plugin: 'kotlin'
 
 buildscript {
 
-    ext.kotlinVersion = '1.1.2-2'
+    ext.kotlinVersion = '1.1.2-5'
 
     repositories {
         mavenCentral()
@@ -22,8 +22,8 @@ dependencies {
 
     compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion"
 
-    compile 'com.github.kotlin-graphics:uno-sdk:c504019d580474208d3db0ad73d4d03061ce4578'
-    compile 'com.github.java-graphics:assimp:f9c6be4727d339abe0117273b6d5670386789469'
+    compile 'com.github.kotlin-graphics:uno-sdk:cc0586819fbb4d6cdc9990945d1522224d29793d'
+    compile 'com.github.java-graphics:assimp:24f956cbe9717e1203818e6ad6c724b91725a1a2'
 
     switch ( OperatingSystem.current() ) {
         case OperatingSystem.WINDOWS:
@@ -36,7 +36,7 @@ dependencies {
             ext.lwjglNatives = "natives-macos"
             break
     }
-    ext.lwjglVersion = "3.1.2-SNAPSHOT"
+    ext.lwjglVersion = "3.1.3-SNAPSHOT"
     compile "org.lwjgl:lwjgl:${lwjglVersion}"
     compile "org.lwjgl:lwjgl-glfw:${lwjglVersion}"
     compile "org.lwjgl:lwjgl-jemalloc:${lwjglVersion}"

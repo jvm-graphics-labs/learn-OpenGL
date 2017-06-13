@@ -4,8 +4,8 @@ package learnOpenGL.a_gettingStarted
  * Created by elect on 24/04/17.
  */
 
-import glm.vec2.Vec2
-import glm.vec3.Vec3
+import glm_.vec2.Vec2
+import glm_.vec3.Vec3
 import learnOpenGL.common.*
 import org.lwjgl.glfw.GLFW.GLFW_KEY_ESCAPE
 import org.lwjgl.opengl.GL
@@ -18,6 +18,8 @@ import org.lwjgl.opengl.GL20.*
 import org.lwjgl.opengl.GL30.*
 import uno.buffer.*
 import uno.glf.semantic
+import uno.glfw.GlfwWindow
+import uno.glfw.glfw
 import uno.gln.*
 import uno.glsl.Program
 
@@ -65,10 +67,10 @@ private class Textures {
 
             /*  Initialize GLFW. Most GLFW functions will not work before doing this.
                 It also setups an error callback. The default implementation will print the error message in System.err.    */
-            glfw.init()
+            init()
 
             //  Configure GLFW
-            glfw.windowHint {
+            windowHint {
                 context.version = "3.3"
                 profile = "core"
             }

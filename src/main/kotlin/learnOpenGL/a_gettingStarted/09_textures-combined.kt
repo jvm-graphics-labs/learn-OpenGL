@@ -4,8 +4,8 @@ package learnOpenGL.a_gettingStarted
  * Created by GBarbieri on 25.04.2017.
  */
 
-import glm.vec2.Vec2
-import glm.vec3.Vec3
+import glm_.vec2.Vec2
+import glm_.vec3.Vec3
 import learnOpenGL.common.*
 import org.lwjgl.glfw.GLFW.GLFW_KEY_ESCAPE
 import org.lwjgl.opengl.EXTABGR
@@ -19,6 +19,8 @@ import org.lwjgl.opengl.GL20.*
 import org.lwjgl.opengl.GL30.*
 import uno.buffer.*
 import uno.glf.semantic
+import uno.glfw.GlfwWindow
+import uno.glfw.glfw
 import uno.gln.*
 import uno.glsl.Program
 

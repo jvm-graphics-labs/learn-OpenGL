@@ -3,6 +3,7 @@ package learnOpenGL.common
 import org.lwjgl.opengl.GL11
 import org.lwjgl.opengl.GL30
 import uno.buffer.toByteBuffer
+import uno.glfw.GlfwWindow
 import java.awt.image.BufferedImage
 import java.awt.image.DataBufferByte
 import java.io.File

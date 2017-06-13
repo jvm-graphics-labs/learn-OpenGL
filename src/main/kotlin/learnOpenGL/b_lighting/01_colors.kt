@@ -4,9 +4,9 @@ package learnOpenGL.b_lighting
  * Created by GBarbieri on 27.04.2017.
  */
 
-import glm.*
-import glm.mat4x4.Mat4
-import glm.vec3.Vec3
+import glm_.*
+import glm_.mat4x4.Mat4
+import glm_.vec3.Vec3
 import learnOpenGL.common.*
 import org.lwjgl.glfw.GLFW.*
 import org.lwjgl.opengl.GL
@@ -18,12 +18,14 @@ import uno.buffer.floatBufferOf
 import uno.buffer.intBufferBig
 import uno.gln.*
 import learnOpenGL.common.Camera.Movement.*
-import learnOpenGL.common.GlfwWindow.Cursor.Disabled
+import uno.glfw.GlfwWindow.Cursor.Disabled
 import org.lwjgl.opengl.GL20.*
 import uno.glf.glf
 import uno.glsl.Program
 import org.lwjgl.opengl.GL11.glClear
 import org.lwjgl.opengl.GL11.glClearColor
+import uno.glfw.GlfwWindow
+import uno.glfw.glfw
 
 
 fun main(args: Array<String>) {
