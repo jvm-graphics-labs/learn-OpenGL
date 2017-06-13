@@ -81,8 +81,6 @@ private class ShadersClass {
            and makes the OpenGL bindings available for use.    */
         GL.createCapabilities()
 
-        val a = ClassLoader.getSystemResource("shaders/a/_07/shader.vert")
-
         // build and compile our shader program, we can simply use it as int for the moment
         program = ProgramA("shaders/a/_07", "shader").name
 
