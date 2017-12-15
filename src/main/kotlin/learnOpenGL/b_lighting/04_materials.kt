@@ -5,28 +5,38 @@ package learnOpenGL.b_lighting
  */
 
 import glm_.f
+import glm_.func.rad
 import glm_.glm
 import glm_.glm.sin
 import glm_.mat4x4.Mat4
-import glm_.rad
+import glm_.vec2.Vec2d
 import glm_.vec3.Vec3
+import gln.buffer.glBindBuffer
+import gln.draw.glDrawArrays
+import gln.glClearColor
+import gln.glf.glf
+import gln.uniform.glUniform
+import gln.uniform.glUniform3
+import gln.vertexArray.glEnableVertexAttribArray
+import gln.vertexArray.glVertexAttribPointer
+import learnOpenGL.a_gettingStarted.*
 import learnOpenGL.common.Camera
 import learnOpenGL.common.Camera.Movement.*
-import uno.glfw.GlfwWindow
-import uno.glfw.GlfwWindow.Cursor.Disabled
-import uno.glfw.glfw
 import org.lwjgl.glfw.GLFW.*
 import org.lwjgl.opengl.GL
 import org.lwjgl.opengl.GL11.*
 import org.lwjgl.opengl.GL15.*
 import org.lwjgl.opengl.GL20.*
 import org.lwjgl.opengl.GL30.*
-import uno.buffer.destroyBuffers
+import uno.buffer.destroyBuf
 import uno.buffer.floatBufferOf
 import uno.buffer.intBufferBig
-import uno.glf.glf
-import uno.gln.*
+import uno.glfw.GlfwWindow
+import uno.glfw.GlfwWindow.Cursor.Disabled
+import uno.glfw.glfw
 import uno.glsl.Program
+import uno.glsl.glDeletePrograms
+import uno.glsl.glUseProgram
 
 
 fun main(args: Array<String>) {
@@ -40,7 +50,7 @@ fun main(args: Array<String>) {
 
 private class Materials {
 
-    val window: GlfwWindow
+    val window = initWindow("Materials")
 
     val lighting: Lighting
     val lamp: Lamp
@@ -55,53 +65,8 @@ private class Materials {
 
     val vao = intBufferBig(VA.Max)
 
-    val vertices = floatBufferOf(
-            -0.5f, -0.5f, -0.5f, 0.0f, 0.0f, -1.0f,
-            +0.5f, -0.5f, -0.5f, 0.0f, 0.0f, -1.0f,
-            +0.5f, +0.5f, -0.5f, 0.0f, 0.0f, -1.0f,
-            +0.5f, +0.5f, -0.5f, 0.0f, 0.0f, -1.0f,
-            -0.5f, +0.5f, -0.5f, 0.0f, 0.0f, -1.0f,
-            -0.5f, -0.5f, -0.5f, 0.0f, 0.0f, -1.0f,
-
-            -0.5f, -0.5f, +0.5f, 0.0f, 0.0f, 1.0f,
-            +0.5f, -0.5f, +0.5f, 0.0f, 0.0f, 1.0f,
-            +0.5f, +0.5f, +0.5f, 0.0f, 0.0f, 1.0f,
-            +0.5f, +0.5f, +0.5f, 0.0f, 0.0f, 1.0f,
-            -0.5f, +0.5f, +0.5f, 0.0f, 0.0f, 1.0f,
-            -0.5f, -0.5f, +0.5f, 0.0f, 0.0f, 1.0f,
-
-            -0.5f, +0.5f, +0.5f, -1.0f, 0.0f, 0.0f,
-            -0.5f, +0.5f, -0.5f, -1.0f, 0.0f, 0.0f,
-            -0.5f, -0.5f, -0.5f, -1.0f, 0.0f, 0.0f,
-            -0.5f, -0.5f, -0.5f, -1.0f, 0.0f, 0.0f,
-            -0.5f, -0.5f, +0.5f, -1.0f, 0.0f, 0.0f,
-            -0.5f, +0.5f, +0.5f, -1.0f, 0.0f, 0.0f,
-
-            +0.5f, +0.5f, +0.5f, 1.0f, 0.0f, 0.0f,
-            +0.5f, +0.5f, -0.5f, 1.0f, 0.0f, 0.0f,
-            +0.5f, -0.5f, -0.5f, 1.0f, 0.0f, 0.0f,
-            +0.5f, -0.5f, -0.5f, 1.0f, 0.0f, 0.0f,
-            +0.5f, -0.5f, +0.5f, 1.0f, 0.0f, 0.0f,
-            +0.5f, +0.5f, +0.5f, 1.0f, 0.0f, 0.0f,
-
-            -0.5f, -0.5f, -0.5f, 0.0f, -1.0f, 0.0f,
-            +0.5f, -0.5f, -0.5f, 0.0f, -1.0f, 0.0f,
-            +0.5f, -0.5f, +0.5f, 0.0f, -1.0f, 0.0f,
-            +0.5f, -0.5f, +0.5f, 0.0f, -1.0f, 0.0f,
-            -0.5f, -0.5f, +0.5f, 0.0f, -1.0f, 0.0f,
-            -0.5f, -0.5f, -0.5f, 0.0f, -1.0f, 0.0f,
-
-            -0.5f, +0.5f, -0.5f, 0.0f, 1.0f, 0.0f,
-            +0.5f, +0.5f, -0.5f, 0.0f, 1.0f, 0.0f,
-            +0.5f, +0.5f, +0.5f, 0.0f, 1.0f, 0.0f,
-            +0.5f, +0.5f, +0.5f, 0.0f, 1.0f, 0.0f,
-            -0.5f, +0.5f, +0.5f, 0.0f, 1.0f, 0.0f,
-            -0.5f, +0.5f, -0.5f, 0.0f, 1.0f, 0.0f)
-
-    // camera
-    val camera = Camera(position = Vec3(0.0f, 0.0f, 3.0f))
-    var lastX = 800.0f / 2.0
-    var lastY = 600.0 / 2.0
+    val camera = Camera(position = Vec3(0f, 0f, 3f))
+    var last = Vec2d(800, 600) / 2
 
     var firstMouse = true
 
@@ -113,43 +78,13 @@ private class Materials {
 
     init {
 
-        with(glfw) {
-
-            /*  Initialize GLFW. Most GLFW functions will not work before doing this.
-                It also setups an error callback. The default implementation will print the error message in System.err.    */
-            init()
-
-            //  Configure GLFW
-            windowHint {
-                context.version = "3.3"
-                profile = "core"
-            }
-        }
-
-        //  glfw window creation
-        window = GlfwWindow(800, 600, "Materials")
-
         with(window) {
+            cursorPosCallback = ::mouseCallback
+            scrollCallback = { _, yOffset -> camera.processMouseScroll(yOffset.f) }
 
-            makeContextCurrent() // Make the OpenGL context current
-
-            show()   // Make the window visible
-
-            framebufferSizeCallback = this@Materials::framebuffer_size_callback
-            cursorPosCallback = this@Materials::mouse_callback
-            scrollCallback = this@Materials::scroll_callback
-
-            // tell GLFW to capture our mouse
             cursor = Disabled
         }
 
-        /* This line is critical for LWJGL's interoperation with GLFW's OpenGL context, or any context that is managed
-           externally. LWJGL detects the context that is current in the current thread, creates the GLCapabilities instance
-           and makes the OpenGL bindings available for use.    */
-        GL.createCapabilities()
-
-
-        // configure global opengl state
         glEnable(GL_DEPTH_TEST)
 
 
@@ -164,7 +99,7 @@ private class Materials {
         glGenBuffers(vbo)
 
         glBindBuffer(GL_ARRAY_BUFFER, vbo)
-        glBufferData(GL_ARRAY_BUFFER, vertices, GL_STATIC_DRAW)
+        glBufferData(GL_ARRAY_BUFFER, verticesCube0, GL_STATIC_DRAW)
 
         glBindVertexArray(vao[VA.Cube])
 
@@ -214,20 +149,17 @@ private class Materials {
 
     fun run() {
 
-        //  render loop
         while (window.open) {
 
-            // per-frame time logic
             val currentFrame = glfw.time
             deltaTime = currentFrame - lastFrame
             lastFrame = currentFrame
 
-            //  input
-            processInput(window)
+            window.processInput0()
 
 
             // render
-            glClearColor(0.2f, 0.3f, 0.3f, 1.0f)
+            glClearColor(clearColor)
             glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
 
             // be sure to activate shader when setting uniforms/drawing objects
@@ -238,23 +170,23 @@ private class Materials {
 
             // light properties
             val lightColor = Vec3(
-                    x = sin(glfw.time * 2.0f),
+                    x = sin(glfw.time * 2f),
                     y = sin(glfw.time * 0.7f),
                     z = sin(glfw.time * 1.3f))
             val diffuseColor = lightColor * 0.5f    // decrease the influence
             val ambientColor = diffuseColor * 0.2f  // low influence
             glUniform(lighting.lgt.ambient, ambientColor)
             glUniform(lighting.lgt.diffuse, diffuseColor)
-            glUniform3(lighting.lgt.specular, 1.0f)
+            glUniform3(lighting.lgt.specular, 1f)
 
             // material properties
-            glUniform(lighting.mtl.ambient, 1.0f, 0.5f, 0.31f)
-            glUniform(lighting.mtl.diffuse, 1.0f, 0.5f, 0.31f)
+            glUniform(lighting.mtl.ambient, 1f, 0.5f, 0.31f)
+            glUniform(lighting.mtl.diffuse, 1f, 0.5f, 0.31f)
             glUniform3(lighting.mtl.specular, 0.5f)
-            glUniform(lighting.mtl.shininess, 32.0f)
+            glUniform(lighting.mtl.shininess, 32f)
 
             // view/projection transformations
-            val projection = glm.perspective(camera.zoom.rad, window.aspect, 0.1f, 100.0f)
+            val projection = glm.perspective(camera.zoom.rad, window.aspect, 0.1f, 100f)
             val view = camera.viewMatrix
             glUniform(lighting.proj, projection)
             glUniform(lighting.view, view)
@@ -281,61 +213,44 @@ private class Materials {
             glBindVertexArray(vao[VA.Light])
             glDrawArrays(GL_TRIANGLES, 36)
 
-            //  glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
-            window.swapBuffers()
-            glfw.pollEvents()
+
+            window.swapAndPoll()
         }
     }
 
     fun end() {
 
-        //  optional: de-allocate all resources once they've outlived their purpose:
         glDeletePrograms(lighting, lamp)
         glDeleteVertexArrays(vao)
         glDeleteBuffers(vbo)
 
-        destroyBuffers(vao, vbo, vertices)
+        destroyBuf(vao, vbo)
 
-        window.destroy()
-        //  glfw: terminate, clearing all previously allocated GLFW resources.
-        glfw.terminate()
+        window.end()
     }
 
-    /** process all input: query GLFW whether relevant keys are pressed/released this frame and react accordingly   */
-    fun processInput(window: GlfwWindow) {
+    fun GlfwWindow.processInput0() {
 
-        if (window.pressed(GLFW_KEY_ESCAPE))
-            window.close = true
+        processInput()
 
-        if (window.pressed(GLFW_KEY_W)) camera.processKeyboard(Forward, deltaTime)
-        if (window.pressed(GLFW_KEY_S)) camera.processKeyboard(Backward, deltaTime)
-        if (window.pressed(GLFW_KEY_A)) camera.processKeyboard(Left, deltaTime)
-        if (window.pressed(GLFW_KEY_D)) camera.processKeyboard(Right, deltaTime)
+        if (pressed(GLFW_KEY_W)) camera.processKeyboard(Forward, deltaTime)
+        if (pressed(GLFW_KEY_S)) camera.processKeyboard(Backward, deltaTime)
+        if (pressed(GLFW_KEY_A)) camera.processKeyboard(Left, deltaTime)
+        if (pressed(GLFW_KEY_D)) camera.processKeyboard(Right, deltaTime)
 
         // TODO up/down?
     }
 
-    /** glfw: whenever the window size changed (by OS or user resize) this callback function executes   */
-    fun framebuffer_size_callback(width: Int, height: Int) {
-
-        /*  make sure the viewport matches the new window dimensions; note that width and height will be significantly
-            larger than specified on retina displays.     */
-        glViewport(0, 0, width, height)
-    }
-
-    /** glfw: whenever the mouse moves, this callback is called */
-    fun mouse_callback(xpos: Double, ypos: Double) {
+    fun mouseCallback(xpos: Double, ypos: Double) {
 
         if (firstMouse) {
-            lastX = xpos
-            lastY = ypos
+            last.put(xpos, ypos)
             firstMouse = false
         }
 
-        var xoffset = xpos - lastX
-        var yoffset = lastY - ypos // reversed since y-coordinates go from bottom to top
-        lastX = xpos
-        lastY = ypos
+        var xoffset = xpos - last.x
+        var yoffset = last.y - ypos // reversed since y-coordinates go from bottom to top
+        last.put(xpos, ypos)
 
         val sensitivity = 0.1f // change this value to your liking
         xoffset *= sensitivity
@@ -343,7 +258,4 @@ private class Materials {
 
         camera.processMouseMovement(xoffset.f, yoffset.f)
     }
-
-    /** glfw: whenever the mouse scroll wheel scrolls, this callback is called  */
-    fun scroll_callback(xOffset: Double, yOffset: Double) = camera.processMouseScroll(yOffset.f)
 }

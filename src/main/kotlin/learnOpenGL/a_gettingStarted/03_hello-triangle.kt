@@ -5,8 +5,13 @@ package learnOpenGL.a_gettingStarted
  */
 
 import glm_.vec3.Vec3
-import uno.glfw.GlfwWindow
-import uno.glfw.glfw
+import gln.buffer.glBindBuffer
+import gln.buffer.glBufferData
+import gln.draw.glDrawArrays
+import gln.glClearColor
+import gln.glViewport
+import gln.glf.semantic
+import gln.vertexArray.glBindVertexArray
 import org.lwjgl.glfw.GLFW.GLFW_KEY_ESCAPE
 import org.lwjgl.opengl.GL
 import org.lwjgl.opengl.GL11.*
@@ -14,18 +19,14 @@ import org.lwjgl.opengl.GL15.*
 import org.lwjgl.opengl.GL20.*
 import org.lwjgl.opengl.GL30.glDeleteVertexArrays
 import org.lwjgl.opengl.GL30.glGenVertexArrays
-import uno.buffer.destroyBuffers
-import uno.buffer.floatBufferOf
+import uno.buffer.destroyBuf
 import uno.buffer.intBufferBig
-import uno.glf.semantic
-import uno.gln.glBindBuffer
-import uno.gln.glBindVertexArray
-import uno.gln.glDrawArrays
+import uno.glfw.GlfwWindow
+import uno.glfw.glfw
 
 fun main(args: Array<String>) {
 
     with(HelloTriangle()) {
-
         run()
         end()
     }
@@ -33,7 +34,7 @@ fun main(args: Array<String>) {
 
 private class HelloTriangle {
 
-    val window: GlfwWindow
+    val window = initWindow("Hello Triangle")
 
     val vertexShaderSource = """
         #version 330 core
@@ -63,46 +64,13 @@ private class HelloTriangle {
     val vbo = intBufferBig(1)
     val vao = intBufferBig(1)
 
-    val vertices = floatBufferOf(
-            -0.5f, -0.5f, 0.0f, // left
-            +0.5f, -0.5f, 0.0f, // right
-            +0.0f, +0.5f, 0.0f  // top
+    val vertices = floatArrayOf(
+            -0.5f, -0.5f, 0f, // left
+            +0.5f, -0.5f, 0f, // right
+            +0.0f, +0.5f, 0f  // top
     )
 
-
     init {
-
-        with(glfw) {
-
-            /*  Initialize GLFW. Most GLFW functions will not work before doing this.
-                It also setups an error callback. The default implementation will print the error message in System.err.    */
-            init()
-
-            //  Configure GLFW
-            windowHint {
-                context.version = "3.3"
-                profile = "core"
-            }
-        }
-
-        //  glfw window creation
-        window = GlfwWindow(800, 600, "Hello Triangle")
-
-        with(window) {
-
-            makeContextCurrent() // Make the OpenGL context current
-
-            show()   // Make the window visible
-
-            framebufferSizeCallback = this@HelloTriangle::framebuffer_size_callback
-        }
-
-        /* This line is critical for LWJGL's interoperation with GLFW's OpenGL context, or any context that is managed
-           externally. LWJGL detects the context that is current in the current thread, creates the GLCapabilities instance
-           and makes the OpenGL bindings available for use.    */
-        GL.createCapabilities()
-
-
         //  build and compile our shader program
         //  vertex shader
         val vertexShader = glCreateShader(GL_VERTEX_SHADER)
@@ -158,19 +126,17 @@ private class HelloTriangle {
         glBindVertexArray()
 
         //  uncomment this call to draw in wireframe polygons.
-        //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
+//        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
     }
 
     fun run() {
 
-        //  render loop
         while (window.open) {
 
-            //  input
-            processInput(window)
+            window.processInput()
 
             //  render
-            glClearColor(0.2f, 0.3f, 0.3f, 1.0f)
+            glClearColor(clearColor)
             glClear(GL_COLOR_BUFFER_BIT)
 
             //  draw our first triangle
@@ -182,8 +148,7 @@ private class HelloTriangle {
             // glBindVertexArray() // no need to unbind it every time
 
             //  glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
-            window.swapBuffers()
-            glfw.pollEvents()
+            window.swapAndPoll()
         }
     }
 
@@ -194,28 +159,10 @@ private class HelloTriangle {
         glDeleteVertexArrays(vao)
         glDeleteBuffers(vbo)
 
-        destroyBuffers(vao, vbo, vertices)
+        destroyBuf(vao, vbo)
 
-        window.destroy()
-        //  glfw: terminate, clearing all previously allocated GLFW resources.
-        glfw.terminate()
-    }
-
-    /** process all input: query GLFW whether relevant keys are pressed/released this frame and react accordingly   */
-    fun processInput(window: GlfwWindow) {
-
-        if (window.pressed(GLFW_KEY_ESCAPE))
-            window.close = true
-    }
-
-    /** glfw: whenever the window size changed (by OS or user resize) this callback function executes   */
-    fun framebuffer_size_callback(width: Int, height: Int) {
-
-        /*  make sure the viewport matches the new window dimensions; note that width and height will be significantly
-            larger than specified on retina displays.     */
-        glViewport(0, 0, width, height)
+        window.end()
     }
 }
-
 
 

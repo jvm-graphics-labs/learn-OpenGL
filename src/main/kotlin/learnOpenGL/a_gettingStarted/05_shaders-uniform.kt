@@ -4,10 +4,15 @@ package learnOpenGL.a_gettingStarted
  * Created by GBarbieri on 24.04.2017.
  */
 
+import glm_.f
 import glm_.glm.sin
 import glm_.vec3.Vec3
-import uno.glfw.GlfwWindow
-import uno.glfw.glfw
+import gln.buffer.glBindBuffer
+import gln.draw.glDrawArrays
+import gln.glClearColor
+import gln.glViewport
+import gln.glf.semantic
+import gln.vertexArray.glBindVertexArray
 import org.lwjgl.glfw.GLFW.GLFW_KEY_ESCAPE
 import org.lwjgl.opengl.GL
 import org.lwjgl.opengl.GL11.*
@@ -15,19 +20,15 @@ import org.lwjgl.opengl.GL15.*
 import org.lwjgl.opengl.GL20.*
 import org.lwjgl.opengl.GL30.glDeleteVertexArrays
 import org.lwjgl.opengl.GL30.glGenVertexArrays
-import uno.buffer.destroyBuffers
-import uno.buffer.floatBufferOf
+import uno.buffer.destroyBuf
 import uno.buffer.intBufferBig
-import uno.glf.semantic
-import uno.gln.glBindBuffer
-import uno.gln.glBindVertexArray
-import uno.gln.glDrawArrays
+import uno.glfw.GlfwWindow
+import uno.glfw.glfw
 
 
 fun main(args: Array<String>) {
 
     with(ShadersUniform()) {
-
         run()
         end()
     }
@@ -35,7 +36,7 @@ fun main(args: Array<String>) {
 
 private class ShadersUniform {
 
-    val window: GlfwWindow
+    val window = initWindow("Shaders Uniform")
 
     val vertexShaderSource = """
         #version 330 core
@@ -69,46 +70,14 @@ private class ShadersUniform {
     val vbo = intBufferBig(1)
     val vao = intBufferBig(1)
 
-    val vertices = floatBufferOf(
-            +0.5f, -0.5f, 0.0f, // bottom right
-            -0.5f, -0.5f, 0.0f, // bottom left
-            +0.0f, +0.5f, 0.0f  // top
+    val vertices = floatArrayOf(
+            +0.5f, -0.5f, 0f, // bottom right
+            -0.5f, -0.5f, 0f, // bottom left
+            +0.0f, +0.5f, 0f  // top
     )
 
 
     init {
-
-        with(glfw) {
-
-            /*  Initialize GLFW. Most GLFW functions will not work before doing this.
-                It also setups an error callback. The default implementation will print the error message in System.err.    */
-            init()
-
-            //  Configure GLFW
-            windowHint {
-                context.version = "3.3"
-                profile = "core"
-            }
-        }
-
-        //  glfw window creation
-        window = GlfwWindow(800, 600, "Shaders Uniform")
-
-        with(window) {
-
-            makeContextCurrent() // Make the OpenGL context current
-
-            show()   // Make the window visible
-
-            framebufferSizeCallback = this@ShadersUniform::framebuffer_size_callback
-        }
-
-        /* This line is critical for LWJGL's interoperation with GLFW's OpenGL context, or any context that is managed
-           externally. LWJGL detects the context that is current in the current thread, creates the GLCapabilities instance
-           and makes the OpenGL bindings available for use.    */
-        GL.createCapabilities()
-
-
         //  build and compile our shader program
         //  vertex shader
         val vertexShader = glCreateShader(GL_VERTEX_SHADER)
@@ -165,14 +134,12 @@ private class ShadersUniform {
 
     fun run() {
 
-        //  render loop
         while (window.open) {
 
-            //  input
-            processInput(window)
+            window.processInput()
 
             //  render
-            glClearColor(0.2f, 0.3f, 0.3f, 1.0f)
+            glClearColor(clearColor)
             glClear(GL_COLOR_BUFFER_BIT)
 
             //  be sure to activate the shader before any calls to glUniform
@@ -180,16 +147,14 @@ private class ShadersUniform {
 
             // update shader uniform
             val timeValue = glfw.time
-            val greenValue = sin(timeValue) / 2.0f + 0.5f
+            val greenValue = sin(timeValue) / 2f + 0.5f
             val vertexColorLocation = glGetUniformLocation(shaderProgram, "ourColor")
-            glUniform4f(vertexColorLocation, 0.0f, greenValue, 0.0f, 1.0f)
+            glUniform4f(vertexColorLocation, 0f, greenValue.f, 0f, 1f)
 
             // render the triangle
             glDrawArrays(GL_TRIANGLES, 3)
 
-            //  glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
-            window.swapBuffers()
-            glfw.pollEvents()
+            window.swapAndPoll()
         }
     }
 
@@ -200,25 +165,8 @@ private class ShadersUniform {
         glDeleteVertexArrays(vao)
         glDeleteBuffers(vbo)
 
-        destroyBuffers(vao, vbo, vertices)
+        destroyBuf(vao, vbo)
 
-        window.destroy()
-        //  glfw: terminate, clearing all previously allocated GLFW resources.
-        glfw.terminate()
-    }
-
-    /** process all input: query GLFW whether relevant keys are pressed/released this frame and react accordingly   */
-    fun processInput(window: GlfwWindow) {
-
-        if (window.pressed(GLFW_KEY_ESCAPE))
-            window.close = true
-    }
-
-    /** glfw: whenever the window size changed (by OS or user resize) this callback function executes   */
-    fun framebuffer_size_callback(width: Int, height: Int) {
-
-        /*  make sure the viewport matches the new window dimensions; note that width and height will be significantly
-            larger than specified on retina displays.     */
-        glViewport(0, 0, width, height)
+        window.end()
     }
 }

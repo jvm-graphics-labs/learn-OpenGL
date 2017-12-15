@@ -4,15 +4,25 @@ package learnOpenGL.a_gettingStarted
  * Created by GBarbieri on 25.04.2017.
  */
 
+import glm_.func.rad
 import glm_.glm
 import glm_.mat4x4.Mat4
-import glm_.rad
 import glm_.vec2.Vec2
 import glm_.vec3.Vec3
-import learnOpenGL.common.*
-import org.lwjgl.glfw.GLFW.GLFW_KEY_ESCAPE
+import gln.buffer.glBindBuffer
+import gln.draw.glDrawArrays
+import gln.get
+import gln.glClearColor
+import gln.glf.semantic
+import gln.program.usingProgram
+import gln.texture.glTexImage2D
+import gln.texture.plus
+import gln.vertexArray.glBindVertexArray
+import gln.vertexArray.glVertexAttribPointer
+import learnOpenGL.common.flipY
+import learnOpenGL.common.readImage
+import learnOpenGL.common.toBuffer
 import org.lwjgl.opengl.EXTABGR
-import org.lwjgl.opengl.GL
 import org.lwjgl.opengl.GL11.*
 import org.lwjgl.opengl.GL12.GL_BGR
 import org.lwjgl.opengl.GL13.GL_TEXTURE0
@@ -21,134 +31,48 @@ import org.lwjgl.opengl.GL15.*
 import org.lwjgl.opengl.GL20.glEnableVertexAttribArray
 import org.lwjgl.opengl.GL20.glGetUniformLocation
 import org.lwjgl.opengl.GL30.*
-import uno.buffer.destroy
-import uno.buffer.destroyBuffers
-import uno.buffer.floatBufferOf
+import uno.buffer.destroyBuf
 import uno.buffer.intBufferBig
-import uno.glf.semantic
-import uno.glfw.GlfwWindow
-import uno.glfw.glfw
-import uno.gln.*
+import uno.buffer.use
 import uno.glsl.Program
+import uno.glsl.glDeleteProgram
+import uno.glsl.usingProgram
 
 fun main(args: Array<String>) {
 
     with(CoordinateSystemsMultipleObjects()) {
-
         run()
         end()
     }
 }
 
+// world space positions of our cubes
+val cubePositions = arrayOf(
+        Vec3(0f, 0f, 0f),
+        Vec3(2f, 5f, -15f),
+        Vec3(-1.5f, -2.2f, -2.5f),
+        Vec3(-3.8f, -2f, -12.3f),
+        Vec3(2.4f, -0.4f, -3.5f),
+        Vec3(-1.7f, 3f, -7.5f),
+        Vec3(1.3f, -2f, -2.5f),
+        Vec3(1.5f, 2f, -2.5f),
+        Vec3(1.5f, 0.2f, -1.5f),
+        Vec3(-1.3f, 1f, -1.5f))
+
 private class CoordinateSystemsMultipleObjects {
 
-    val window: GlfwWindow
+    val window = initWindow("Coordinate Systems Multiple Objects")
 
     val program: ProgramA
 
     val vbo = intBufferBig(1)
     val vao = intBufferBig(1)
 
-    val vertices = floatBufferOf(
-            -0.5f, -0.5f, -0.5f, 0.0f, 0.0f,
-            +0.5f, -0.5f, -0.5f, 1.0f, 0.0f,
-            +0.5f, +0.5f, -0.5f, 1.0f, 1.0f,
-            +0.5f, +0.5f, -0.5f, 1.0f, 1.0f,
-            -0.5f, +0.5f, -0.5f, 0.0f, 1.0f,
-            -0.5f, -0.5f, -0.5f, 0.0f, 0.0f,
+    enum class Texture { A, B }
 
-            -0.5f, -0.5f, +0.5f, 0.0f, 0.0f,
-            +0.5f, -0.5f, +0.5f, 1.0f, 0.0f,
-            +0.5f, +0.5f, +0.5f, 1.0f, 1.0f,
-            +0.5f, +0.5f, +0.5f, 1.0f, 1.0f,
-            -0.5f, +0.5f, +0.5f, 0.0f, 1.0f,
-            -0.5f, -0.5f, +0.5f, 0.0f, 0.0f,
-
-            -0.5f, +0.5f, +0.5f, 1.0f, 0.0f,
-            -0.5f, +0.5f, -0.5f, 1.0f, 1.0f,
-            -0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
-            -0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
-            -0.5f, -0.5f, +0.5f, 0.0f, 0.0f,
-            -0.5f, +0.5f, +0.5f, 1.0f, 0.0f,
-
-            +0.5f, +0.5f, +0.5f, 1.0f, 0.0f,
-            +0.5f, +0.5f, -0.5f, 1.0f, 1.0f,
-            +0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
-            +0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
-            +0.5f, -0.5f, +0.5f, 0.0f, 0.0f,
-            +0.5f, +0.5f, +0.5f, 1.0f, 0.0f,
-
-            -0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
-            +0.5f, -0.5f, -0.5f, 1.0f, 1.0f,
-            +0.5f, -0.5f, +0.5f, 1.0f, 0.0f,
-            +0.5f, -0.5f, +0.5f, 1.0f, 0.0f,
-            -0.5f, -0.5f, +0.5f, 0.0f, 0.0f,
-            -0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
-
-            -0.5f, +0.5f, -0.5f, 0.0f, 1.0f,
-            +0.5f, +0.5f, -0.5f, 1.0f, 1.0f,
-            +0.5f, +0.5f, +0.5f, 1.0f, 0.0f,
-            +0.5f, +0.5f, +0.5f, 1.0f, 0.0f,
-            -0.5f, +0.5f, +0.5f, 0.0f, 0.0f,
-            -0.5f, +0.5f, -0.5f, 0.0f, 1.0f)
-
-    // world space positions of our cubes
-    val cubePositions = arrayOf(
-            Vec3(0.0f, 0.0f, 0.0f),
-            Vec3(2.0f, 5.0f, -15.0f),
-            Vec3(-1.5f, -2.2f, -2.5f),
-            Vec3(-3.8f, -2.0f, -12.3f),
-            Vec3(2.4f, -0.4f, -3.5f),
-            Vec3(-1.7f, 3.0f, -7.5f),
-            Vec3(1.3f, -2.0f, -2.5f),
-            Vec3(1.5f, 2.0f, -2.5f),
-            Vec3(1.5f, 0.2f, -1.5f),
-            Vec3(-1.3f, 1.0f, -1.5f))
-
-    object Texture {
-        val A = 0
-        val B = 1
-        val Max = 2
-    }
-
-    val textures = intBufferBig(Texture.Max)
-
-    val semantic.sampler.DIFFUSE_A get() = 0
-    val semantic.sampler.DIFFUSE_B get() = 1
+    val textures = intBufferBig<Texture>()
 
     init {
-
-        with(glfw) {
-
-            /*  Initialize GLFW. Most GLFW functions will not work before doing this.
-                It also setups an error callback. The default implementation will print the error message in System.err.    */
-            init()
-
-            //  Configure GLFW
-            windowHint {
-                context.version = "3.3"
-                profile = "core"
-            }
-        }
-
-        //  glfw window creation
-        window = GlfwWindow(800, 600, "Coordinate Systems Multiple Objects")
-
-        with(window) {
-
-            makeContextCurrent() // Make the OpenGL context current
-
-            show()   // Make the window visible
-
-            framebufferSizeCallback = this@CoordinateSystemsMultipleObjects::framebuffer_size_callback
-        }
-
-        /* This line is critical for LWJGL's interoperation with GLFW's OpenGL context, or any context that is managed
-           externally. LWJGL detects the context that is current in the current thread, creates the GLCapabilities instance
-           and makes the OpenGL bindings available for use.    */
-        GL.createCapabilities()
-
-
         // configure global opengl state
         glEnable(GL_DEPTH_TEST)
 
@@ -165,7 +89,7 @@ private class CoordinateSystemsMultipleObjects {
         glBindVertexArray(vao)
 
         glBindBuffer(GL_ARRAY_BUFFER, vbo)
-        glBufferData(GL_ARRAY_BUFFER, vertices, GL_STATIC_DRAW)
+        glBufferData(GL_ARRAY_BUFFER, verticesCube, GL_STATIC_DRAW)
 
         //  position attribute
         glVertexAttribPointer(semantic.attr.POSITION, Vec3.length, GL_FLOAT, false, Vec3.size + Vec2.size, 0)
@@ -189,12 +113,10 @@ private class CoordinateSystemsMultipleObjects {
 
         // load image, create texture and generate mipmaps
         var image = readImage("textures/container.jpg").flipY()
-        var data = image.toByteBuffer()
-
-        glTexImage2D(GL_TEXTURE_2D, GL_RGB, image.width, image.height, GL_BGR, GL_UNSIGNED_BYTE, data)
-        glGenerateMipmap(GL_TEXTURE_2D)
-
-        data.destroy()
+        image.toBuffer().use {
+            glTexImage2D(GL_RGB, image.width, image.height, GL_BGR, GL_UNSIGNED_BYTE, it)
+            glGenerateMipmap(GL_TEXTURE_2D)
+        }
 
 
         //  texture B
@@ -208,12 +130,10 @@ private class CoordinateSystemsMultipleObjects {
 
         // load image, create texture and generate mipmaps
         image = readImage("textures/awesomeface.png").flipY()
-        data = image.toByteBuffer()
-
-        glTexImage2D(GL_TEXTURE_2D, GL_RGB, image.width, image.height, EXTABGR.GL_ABGR_EXT, GL_UNSIGNED_BYTE, data)
-        glGenerateMipmap(GL_TEXTURE_2D)
-
-        data.destroy()
+        image.toBuffer().use {
+            glTexImage2D(GL_RGB, image.width, image.height, EXTABGR.GL_ABGR_EXT, GL_UNSIGNED_BYTE, it)
+            glGenerateMipmap(GL_TEXTURE_2D)
+        }
 
 
         /*  You can unbind the VAO afterwards so other VAO calls won't accidentally modify this VAO, but this rarely happens.
@@ -232,38 +152,33 @@ private class CoordinateSystemsMultipleObjects {
             /*  Tell opengl for each sampler to which texture unit it belongs to (only has to be done once)
             Code passed to usingProgram() {..] is executed using the given program, which at the end gets unbound   */
             usingProgram(name) {
-                "textureA".unit = semantic.sampler.DIFFUSE_A
-                "textureB".unit = semantic.sampler.DIFFUSE_B
+                "textureA".unitE = Texture.A
+                "textureB".unitE = Texture.B
             }
         }
     }
 
     fun run() {
 
-        //  render loop
         while (window.open) {
 
-            //  input
-            processInput(window)
+            window.processInput()
 
             //  render
-            glClearColor(0.2f, 0.3f, 0.3f, 1.0f)
+            glClearColor(clearColor)
             glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT) // also clear the depth buffer now!
 
             //  bind textures on corresponding texture units
-            glActiveTexture(GL_TEXTURE0 + semantic.sampler.DIFFUSE_A)
+            glActiveTexture(GL_TEXTURE0 + Texture.A)
             glBindTexture(GL_TEXTURE_2D, textures[Texture.A])
-            glActiveTexture(GL_TEXTURE0 + semantic.sampler.DIFFUSE_B)
+            glActiveTexture(GL_TEXTURE0 + Texture.B)
             glBindTexture(GL_TEXTURE_2D, textures[Texture.B])
 
             usingProgram(program) {
 
                 //  create transformations
-                val view = glm.translate(Mat4(), 0.0f, 0.0f, -3.0f)
-                val projection = glm.perspective(45.0f.rad, window.aspect, 0.1f, 100.0f)
-                //  retrieve the matrix uniform locations
-                view to program.view
-                projection to program.proj
+                glm.translate(Mat4(), 0f, 0f, -3f) to program.view
+                glm.perspective(45f.rad, window.aspect, 0.1f, 100f) to program.proj
 
                 // render boxes
                 glBindVertexArray(vao)
@@ -271,17 +186,15 @@ private class CoordinateSystemsMultipleObjects {
 
                     // calculate the model matrix for each object and pass it to shader before drawing
                     val model = Mat4() translate_ vec3
-                    val angle = 20.0f * i
-                    model.rotate_(angle.rad, 1.0f, 0.3f, 0.5f)
+                    val angle = 20f * i
+                    model.rotate_(angle.rad, 1f, 0.3f, 0.5f)
                     model to program.model
 
                     glDrawArrays(GL_TRIANGLES, 36)
                 }
             }
 
-            //  glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
-            window.swapBuffers()
-            glfw.pollEvents()
+            window.swapAndPoll()
         }
     }
 
@@ -293,25 +206,8 @@ private class CoordinateSystemsMultipleObjects {
         glDeleteBuffers(vbo)
         glDeleteTextures(textures)
 
-        destroyBuffers(vao, vbo, textures, vertices)
+        destroyBuf(vao, vbo, textures)
 
-        window.destroy()
-        //  glfw: terminate, clearing all previously allocated GLFW resources.
-        glfw.terminate()
-    }
-
-    /** process all input: query GLFW whether relevant keys are pressed/released this frame and react accordingly   */
-    fun processInput(window: GlfwWindow) {
-
-        if (window.pressed(GLFW_KEY_ESCAPE))
-            window.close = true
-    }
-
-    /** glfw: whenever the window size changed (by OS or user resize) this callback function executes   */
-    fun framebuffer_size_callback(width: Int, height: Int) {
-
-        /*  make sure the viewport matches the new window dimensions; note that width and height will be significantly
-            larger than specified on retina displays.     */
-        glViewport(0, 0, width, height)
+        window.end()
     }
 }

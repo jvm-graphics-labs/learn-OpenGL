@@ -5,26 +5,28 @@ package learnOpenGL.c_modelLoading
  */
 
 import glm_.f
+import glm_.func.rad
 import glm_.glm
 import glm_.mat4x4.Mat4
-import glm_.rad
 import glm_.vec3.Vec3
+import gln.glf.semantic
+import gln.program.glDeletePrograms
+import gln.program.usingProgram
+import gln.uniform.glUniform
 import learnOpenGL.common.Camera
 import learnOpenGL.common.Camera.Movement.*
-import uno.glfw.GlfwWindow
-import uno.glfw.GlfwWindow.Cursor.Disabled
 import learnOpenGL.common.Model
-import uno.glfw.glfw
 import org.lwjgl.glfw.GLFW.*
 import org.lwjgl.opengl.GL
 import org.lwjgl.opengl.GL11.*
 import org.lwjgl.opengl.GL20.glGetUniformLocation
-import uno.glf.semantic
-import uno.gln.glDeletePrograms
-import uno.gln.glUniform
-import uno.gln.glUseProgram
-import uno.gln.usingProgram
+import uno.glfw.GlfwWindow
+import uno.glfw.GlfwWindow.Cursor.Disabled
+import uno.glfw.glfw
 import uno.glsl.Program
+import uno.glsl.glDeletePrograms
+import uno.glsl.glUseProgram
+import uno.glsl.usingProgram
 
 
 fun main(args: Array<String>) {
@@ -109,7 +111,7 @@ private class ModelLoading {
         val proj = glGetUniformLocation(name, "projection")
 
         init {
-            usingProgram(this) { "texture_diffuse".unit = semantic.sampler.DIFFUSE }
+            usingProgram(name) { "texture_diffuse".unit = semantic.sampler.DIFFUSE }
         }
     }
 

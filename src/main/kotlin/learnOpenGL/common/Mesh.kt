@@ -4,7 +4,16 @@ import assimp.AiMaterial
 import assimp.AiMesh
 import assimp.AiScene
 import assimp.AiTexture
+import gli_.gli
 import glm_.set
+import gln.draw.glDrawElements
+import gln.glf.glf
+import gln.glf.semantic
+import gln.texture.glBindTexture
+import gln.texture.initTexture2d
+import gln.vertexArray.glBindVertexArray
+import gln.vertexArray.glVertexAttribPointer
+import gln.vertexArray.withVertexArray
 import org.lwjgl.opengl.GL11.*
 import org.lwjgl.opengl.GL13.GL_TEXTURE0
 import org.lwjgl.opengl.GL13.glActiveTexture
@@ -15,9 +24,6 @@ import uno.buffer.destroy
 import uno.buffer.floatBufferBig
 import uno.buffer.intBufferBig
 import uno.buffer.intBufferOf
-import uno.glf.glf
-import uno.glf.semantic
-import uno.gln.*
 import java.nio.IntBuffer
 
 /**
@@ -51,13 +57,13 @@ class Mesh(assimpMesh: AiMesh, scene: AiScene) {
         // Load data into vertex buffers
         glBindBuffer(GL_ARRAY_BUFFER, buffers[Buffer.VERTEX])
         val vertexSize = 3 + 3 + 2
-        val vertices = floatBufferBig(vertexSize * assimpMesh.mNumVertices)
-        assimpMesh.mVertices.forEachIndexed { i, v ->
-            val n = assimpMesh.mNormals[i]
+        val vertices = floatBufferBig(vertexSize * assimpMesh.numVertices)
+        assimpMesh.vertices.forEachIndexed { i, v ->
+            val n = assimpMesh.normals[i]
             v.to(vertices, i * vertexSize)
             n.to(vertices, i * vertexSize + 3)
-            if (assimpMesh.mTextureCoords[0].isNotEmpty()) {
-                val tc = assimpMesh.mTextureCoords[0][i]
+            if (assimpMesh.textureCoords[0].isNotEmpty()) {
+                val tc = assimpMesh.textureCoords[0][i]
                 vertices[i * vertexSize + 3 + 3] = tc[0]
                 vertices[i * vertexSize + 3 + 3 + 1] = tc[1]
             }
@@ -65,9 +71,9 @@ class Mesh(assimpMesh: AiMesh, scene: AiScene) {
         glBufferData(GL_ARRAY_BUFFER, vertices, GL_STATIC_DRAW)
 
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, buffers[Buffer.ELEMENT])
-        indexCount = assimpMesh.mNumFaces * 3
+        indexCount = assimpMesh.numFaces * 3
         val indices = intBufferBig(indexCount)
-        repeat(indexCount) { indices[it] = assimpMesh.mFaces[it / 3][it % 3] }
+        repeat(indexCount) { indices[it] = assimpMesh.faces[it / 3][it % 3] }
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices, GL_STATIC_DRAW)
 
         // Set the vertex attribute pointers
@@ -91,7 +97,7 @@ class Mesh(assimpMesh: AiMesh, scene: AiScene) {
 
 
         // Process materials
-        with(scene.mMaterials[assimpMesh.mMaterialIndex]) {
+        with(scene.materials[assimpMesh.materialIndex]) {
 
             textures.firstOrNull { it.type == AiTexture.Type.diffuse }?.let {
                 diffuseMap = intBufferOf(loadMaterialTexture(it, scene))
@@ -106,47 +112,44 @@ class Mesh(assimpMesh: AiMesh, scene: AiScene) {
      * Checks all material textures of a given type and loads the textures if they're not loaded yet.
      * The required info is returned as a Texture struct.
      */
-    fun loadMaterialTexture(assimpTex: AiMaterial.Texture, scene: AiScene): Int {
-
-        val textureID = glGenTextures()
+    fun loadMaterialTexture(assimpTex: AiMaterial.Texture, scene: AiScene) = initTexture2d {
 
         val gliTexture = scene.textures[assimpTex.file]!!
 
-        glBindTexture(GL_TEXTURE_2D, textureID)
-        val format = gli.gl.translate(gliTexture.format, gliTexture.swizzles)
-        glTexImage2D(format, gliTexture)
+//        val format = gli.gl.translate(gliTexture.format, gliTexture.swizzles)
+//        image(format.internal, gliTexture.)
+//        glTexImage2D(format, gliTexture)
+        image(gliTexture)
         glGenerateMipmap(GL_TEXTURE_2D)
 
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT)
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT)
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR)
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
-
-        return textureID
     }
 
     fun draw(diffuse: Boolean = false, specular: Boolean = false) {
 
-        if (diffuse && diffuseMap != null) {
+        if (diffuse) diffuseMap?.let {
             glActiveTexture(GL_TEXTURE0 + semantic.sampler.DIFFUSE)
-            glBindTexture(GL_TEXTURE_2D, diffuseMap!!)
+            glBindTexture(GL_TEXTURE_2D, it)
         }
-        if (specular && specularMap != null) {
+        if (specular) specularMap?.let {
             glActiveTexture(GL_TEXTURE0 + semantic.sampler.SPECULAR)
-            glBindTexture(GL_TEXTURE_2D, specularMap!!)
+            glBindTexture(GL_TEXTURE_2D, it)
         }
 
         // Draw mesh
-        glBindVertexArray(vao)
-        glDrawElements(GL_TRIANGLES, indexCount, GL_UNSIGNED_INT)
-        glBindVertexArray()
+        withVertexArray(vao) {
+            glDrawElements(indexCount)
+        }
 
         // Always good practice to set everything back to defaults once configured.
-        if (diffuse && diffuseMap != null) {
+        if (diffuse) diffuseMap?.let {
             glActiveTexture(GL_TEXTURE0 + semantic.sampler.DIFFUSE)
             glBindTexture(GL_TEXTURE_2D)
         }
-        if (specular && specularMap != null) {
+        if (specular) specularMap?.let {
             glActiveTexture(GL_TEXTURE0 + semantic.sampler.SPECULAR)
             glBindTexture(GL_TEXTURE_2D)
         }

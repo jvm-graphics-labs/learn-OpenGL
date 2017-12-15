@@ -4,14 +4,23 @@ package learnOpenGL.b_lighting
  * Created by GBarbieri on 02.05.2017.
  */
 
-import glm_.*
+import glm_.f
+import glm_.func.cos
+import glm_.func.rad
+import glm_.glm
 import glm_.mat4x4.Mat4
+import glm_.set
 import glm_.vec3.Vec3
+import gln.buffer.glBindBuffer
+import gln.draw.glDrawArrays
+import gln.glf.glf
+import gln.glf.semantic
+import gln.uniform.glUniform
+import gln.uniform.glUniform3
+import gln.vertexArray.glEnableVertexAttribArray
+import gln.vertexArray.glVertexAttribPointer
 import learnOpenGL.common.Camera
 import learnOpenGL.common.Camera.Movement.*
-import uno.glfw.GlfwWindow
-import uno.glfw.GlfwWindow.Cursor.Disabled
-import uno.glfw.glfw
 import learnOpenGL.common.loadTexture
 import org.lwjgl.glfw.GLFW.*
 import org.lwjgl.opengl.GL
@@ -21,13 +30,16 @@ import org.lwjgl.opengl.GL13.glActiveTexture
 import org.lwjgl.opengl.GL15.*
 import org.lwjgl.opengl.GL20.glGetUniformLocation
 import org.lwjgl.opengl.GL30.*
-import uno.buffer.destroyBuffers
+import uno.buffer.destroyBuf
 import uno.buffer.floatBufferOf
 import uno.buffer.intBufferBig
-import uno.glf.glf
-import uno.glf.semantic
-import uno.gln.*
+import uno.glfw.GlfwWindow
+import uno.glfw.GlfwWindow.Cursor.Disabled
+import uno.glfw.glfw
 import uno.glsl.Program
+import uno.glsl.glDeletePrograms
+import uno.glsl.glUseProgram
+import uno.glsl.usingProgram
 
 
 fun main(args: Array<String>) {
@@ -326,7 +338,7 @@ private class LightCastersSpot {
         glDeleteBuffers(vbo)
         glDeleteTextures(textures)
 
-        destroyBuffers(vao, vbo, textures, vertices)
+        destroyBuf(vao, vbo, textures, vertices)
 
         window.destroy()
         //  glfw: terminate, clearing all previously allocated GLFW resources.

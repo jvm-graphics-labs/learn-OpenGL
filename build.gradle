@@ -4,10 +4,11 @@ apply plugin: 'kotlin'
 
 buildscript {
 
-    ext.kotlinVersion = '1.1.2-5'
+    ext.kotlinVersion = '1.2.0'
 
     repositories {
         mavenCentral()
+        jcenter()
         maven { url "https://dl.bintray.com/kotlin/kotlin-dev" }
         maven { url "https://oss.sonatype.org/content/repositories/snapshots/" }
     }
@@ -22,8 +23,7 @@ dependencies {
 
     compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion"
 
-    compile 'com.github.kotlin-graphics:uno-sdk:87188d8ef1fc8caccbdba2cb0a0f3995536e9c28'
-    compile 'com.github.java-graphics:assimp:24f956cbe9717e1203818e6ad6c724b91725a1a2'
+    compile 'com.github.kotlin-graphics:assimp:e50cd0946c9d5b3c066ee112609bd3f5c9c5d480'
 
     switch ( OperatingSystem.current() ) {
         case OperatingSystem.WINDOWS:
@@ -36,7 +36,7 @@ dependencies {
             ext.lwjglNatives = "natives-macos"
             break
     }
-    ext.lwjglVersion = "3.1.3-SNAPSHOT"
+    ext.lwjglVersion = "3.1.5-SNAPSHOT"
     compile "org.lwjgl:lwjgl:${lwjglVersion}"
     compile "org.lwjgl:lwjgl-glfw:${lwjglVersion}"
     compile "org.lwjgl:lwjgl-jemalloc:${lwjglVersion}"
@@ -55,5 +55,6 @@ repositories {
     mavenCentral()
     maven { url "https://dl.bintray.com/kotlin/kotlin-dev" }
     maven { url "https://oss.sonatype.org/content/repositories/snapshots/" }
+    maven { url "https://dl.bintray.com/kotlin-graphics/assimp" }
     maven { url 'https://jitpack.io' }
 }

@@ -1,9 +1,9 @@
 package learnOpenGL.common
 
-import glm_.cos
+import glm_.func.cos
+import glm_.func.rad
+import glm_.func.sin
 import glm_.glm
-import glm_.rad
-import glm_.sin
 import glm_.vec3.Vec3
 import learnOpenGL.common.Camera.Movement.*
 
@@ -15,20 +15,20 @@ import learnOpenGL.common.Camera.Movement.*
  *  for use in OpenGL   */
 class Camera(
         //  Camera Attributes
-        var position: Vec3 = Vec3(),
-        var worldUp: Vec3 = Vec3(0.0f, 1.0, 0.0f),
+        val position: Vec3 = Vec3(),
+        var worldUp: Vec3 = Vec3(0f, 1f, 0f),
         //  Eular Angles
-        var yaw: Float = -90.0f,
-        var pitch: Float = 0.0f) {
+        var yaw: Float = -90f,
+        var pitch: Float = 0f) {
 
     //  Camera Attributes
-    var front = Vec3(0.0f, 0.0f, -1.0f)
+    var front = Vec3(0f, 0f, -1f)
     var up = Vec3()
     var right = Vec3()
     //  Camera options
     var movementSpeed = 2.5f
     var mouseSensitivity = 0.5f
-    var zoom = 45.0f
+    var zoom = 45f
 
     /** Constructor with scalar values  */
     constructor(posX: Float, posY: Float, posZ: Float, upX: Float, upY: Float, upZ: Float, yaw: Float, pitch: Float) :
@@ -47,7 +47,7 @@ class Camera(
 
         val velocity = movementSpeed * deltaTime
 
-        position plus_ when (direction) {
+        position += when (direction) {
             Forward -> front * velocity
             Backward -> -front * velocity
             Left -> -right * velocity
@@ -87,11 +87,11 @@ class Camera(
         front.put(
                 x = yaw.rad.cos * pitch.rad.cos,
                 y = pitch.rad.sin,
-                z = yaw.rad.sin * pitch.rad.cos).normalize_()
+                z = yaw.rad.sin * pitch.rad.cos).normalizeAssign()
         /*  Also re-calculate the Right and Up vector, by taking care to normalize the vectors, because their length
             gets closer to 0 the more you look up or down which results in slower movement.         */
-        right put (front cross worldUp).normalize_()
-        up put (right cross front).normalize_()
+        right put (front cross worldUp).normalizeAssign()
+        up put (right cross front).normalizeAssign()
     }
 
     enum class Movement { Forward, Backward, Left, Right }

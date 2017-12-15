@@ -5,20 +5,26 @@ package learnOpenGL.a_gettingStarted
  */
 
 import glm_.vec3.Vec3
+import gln.buffer.glBindBuffer
+import gln.draw.glDrawArrays
+import gln.glClearColor
 import org.lwjgl.glfw.GLFW.GLFW_KEY_ESCAPE
 import org.lwjgl.opengl.GL11.*
 import org.lwjgl.opengl.GL15.*
 import org.lwjgl.opengl.GL20.*
 import org.lwjgl.opengl.GL30.glDeleteVertexArrays
 import org.lwjgl.opengl.GL30.glGenVertexArrays
-import uno.glf.semantic
+import gln.glf.semantic
+import gln.vertexArray.glBindVertexArray
+import gln.vertexArray.glVertexAttribPointer
+import uno.buffer.destroyBuf
+import uno.buffer.intBufferBig
 import uno.glfw.GlfwWindow
 import uno.glfw.glfw
 
 fun main(args: Array<String>) {
 
-    with(learnOpenGL.a_gettingStarted.ShadersInterpolation()) {
-
+    with(ShadersInterpolation()) {
         run()
         end()
     }
@@ -26,7 +32,7 @@ fun main(args: Array<String>) {
 
 private class ShadersInterpolation {
 
-    val window: GlfwWindow
+    val window = initWindow("Shaders Interpolation")
 
     val vertexShaderSource = """
         #version 330 core
@@ -62,50 +68,18 @@ private class ShadersInterpolation {
 
     val shaderProgram: Int
 
-    val vbo = uno.buffer.intBufferBig(1)
-    val vao = uno.buffer.intBufferBig(1)
+    val vbo = intBufferBig(1)
+    val vao = intBufferBig(1)
 
-    val vertices = uno.buffer.floatBufferOf(
-            // positions        // colors
-            +0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f, // bottom right
-            -0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f, // bottom left
-            +0.0f, +0.5f, 0.0f, 0.0f, 0.0f, 1.0f  // top
+    val vertices = floatArrayOf(
+            // positions | colors
+            +0.5f, -0.5f, 0f, 1f, 0f, 0f, // bottom right
+            -0.5f, -0.5f, 0f, 0f, 1f, 0f, // bottom left
+            +0.0f, +0.5f, 0f, 0f, 0f, 1f  // top
     )
 
 
     init {
-
-        with(glfw) {
-
-            /*  Initialize GLFW. Most GLFW functions will not work before doing this.
-                It also setups an error callback. The default implementation will print the error message in System.err.    */
-            init()
-
-            //  Configure GLFW
-            windowHint {
-                context.version = "3.3"
-                profile = "core"
-            }
-        }
-
-        //  glfw window creation
-        window = GlfwWindow(800, 600, "Shaders Interpolation")
-
-        with(window) {
-
-            makeContextCurrent() // Make the OpenGL context current
-
-            show()   // Make the window visible
-
-            framebufferSizeCallback = this@ShadersInterpolation::framebuffer_size_callback
-        }
-
-        /* This line is critical for LWJGL's interoperation with GLFW's OpenGL context, or any context that is managed
-           externally. LWJGL detects the context that is current in the current thread, creates the GLCapabilities instance
-           and makes the OpenGL bindings available for use.    */
-        org.lwjgl.opengl.GL.createCapabilities()
-
-
         //  build and compile our shader program
         //  vertex shader
         val vertexShader = glCreateShader(GL_VERTEX_SHADER)
@@ -142,17 +116,17 @@ private class ShadersInterpolation {
         glGenVertexArrays(vao)
         glGenBuffers(vbo)
         //  bind the Vertex Array Object first, then bind and set vertex buffer(s), and then configure vertex attributes(s).
-        uno.gln.glBindVertexArray(vao)
+        glBindVertexArray(vao)
 
-        uno.gln.glBindBuffer(GL_ARRAY_BUFFER, vbo)
+        glBindBuffer(GL_ARRAY_BUFFER, vbo)
         glBufferData(GL_ARRAY_BUFFER, vertices, GL_STATIC_DRAW)
 
         //  position attribute
-        uno.gln.glVertexAttribPointer(semantic.attr.POSITION, Vec3.length, GL_FLOAT, false, 2 * Vec3.size, 0)
-        glEnableVertexAttribArray(uno.glf.semantic.attr.POSITION)
+        glVertexAttribPointer(semantic.attr.POSITION, Vec3.length, GL_FLOAT, false, 2 * Vec3.size, 0)
+        glEnableVertexAttribArray(semantic.attr.POSITION)
         //  color attribute
-        uno.gln.glVertexAttribPointer(semantic.attr.COLOR, Vec3.length, GL_FLOAT, false, 2 * Vec3.size, Vec3.size)
-        glEnableVertexAttribArray(uno.glf.semantic.attr.COLOR)
+        glVertexAttribPointer(semantic.attr.COLOR, Vec3.length, GL_FLOAT, false, 2 * Vec3.size, Vec3.size)
+        glEnableVertexAttribArray(semantic.attr.COLOR)
 
         /*  You can unbind the VAO afterwards so other VAO calls won't accidentally modify this VAO, but this rarely happens.
             Modifying other VAOs requires a call to glBindVertexArray anyways so we generally don't unbind VAOs (nor VBOs)
@@ -165,22 +139,18 @@ private class ShadersInterpolation {
 
     fun run() {
 
-        //  render loop
         while (window.open) {
 
-            //  input
-            processInput(window)
+            window.processInput()
 
             //  render
-            glClearColor(0.2f, 0.3f, 0.3f, 1.0f)
+            glClearColor(clearColor)
             glClear(GL_COLOR_BUFFER_BIT)
 
             // render the triangle
-            uno.gln.glDrawArrays(GL_TRIANGLES, 3)
+            glDrawArrays(GL_TRIANGLES, 3)
 
-            //  glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
-            window.swapBuffers()
-            glfw.pollEvents()
+            window.swapAndPoll()
         }
     }
 
@@ -191,25 +161,8 @@ private class ShadersInterpolation {
         glDeleteVertexArrays(vao)
         glDeleteBuffers(vbo)
 
-        uno.buffer.destroyBuffers(vao, vbo, vertices)
+        destroyBuf(vao, vbo)
 
-        window.destroy()
-        //  glfw: terminate, clearing all previously allocated GLFW resources.
-        glfw.terminate()
-    }
-
-    /** process all input: query GLFW whether relevant keys are pressed/released this frame and react accordingly   */
-    fun processInput(window: GlfwWindow) {
-
-        if (window.pressed(GLFW_KEY_ESCAPE))
-            window.close = true
-    }
-
-    /** glfw: whenever the window size changed (by OS or user resize) this callback function executes   */
-    fun framebuffer_size_callback(width: Int, height: Int) {
-
-        /*  make sure the viewport matches the new window dimensions; note that width and height will be significantly
-            larger than specified on retina displays.     */
-        glViewport(0, 0, width, height)
+        window.end()
     }
 }

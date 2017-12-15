@@ -4,39 +4,52 @@ package learnOpenGL.a_gettingStarted
  * Created by GBarbieri on 27.04.2017.
  */
 
-import glm_.*
+import glm_.f
+import glm_.func.rad
+import glm_.glm
 import glm_.mat4x4.Mat4
 import glm_.vec2.Vec2
+import glm_.vec2.Vec2d
 import glm_.vec3.Vec3
-import learnOpenGL.common.*
+import gln.buffer.glBindBuffer
+import gln.draw.glDrawArrays
+import gln.get
+import gln.glClearColor
+import gln.glf.semantic
+import gln.program.usingProgram
+import gln.texture.glTexImage2D
+import gln.texture.plus
+import gln.vertexArray.glBindVertexArray
+import gln.vertexArray.glVertexAttribPointer
+import learnOpenGL.common.Camera
+import learnOpenGL.common.Camera.Movement.*
+import learnOpenGL.common.flipY
+import learnOpenGL.common.readImage
+import learnOpenGL.common.toBuffer
 import org.lwjgl.glfw.GLFW.*
 import org.lwjgl.opengl.EXTABGR
-import org.lwjgl.opengl.GL
 import org.lwjgl.opengl.GL11.*
 import org.lwjgl.opengl.GL12.GL_BGR
 import org.lwjgl.opengl.GL13.GL_TEXTURE0
 import org.lwjgl.opengl.GL13.glActiveTexture
 import org.lwjgl.opengl.GL15.*
 import org.lwjgl.opengl.GL20.glEnableVertexAttribArray
-import org.lwjgl.opengl.GL30.*
-import uno.buffer.destroy
-import uno.buffer.destroyBuffers
-import uno.buffer.floatBufferOf
-import uno.buffer.intBufferBig
-import uno.glf.semantic
-import uno.gln.*
-import learnOpenGL.common.Camera.Movement.*
-import uno.glfw.GlfwWindow.Cursor.Disabled
 import org.lwjgl.opengl.GL20.glGetUniformLocation
+import org.lwjgl.opengl.GL30.*
+import uno.buffer.destroyBuf
+import uno.buffer.intBufferBig
+import uno.buffer.use
 import uno.glfw.GlfwWindow
+import uno.glfw.GlfwWindow.Cursor.Disabled
 import uno.glfw.glfw
 import uno.glsl.Program
+import uno.glsl.glDeleteProgram
+import uno.glsl.usingProgram
 
 
 fun main(args: Array<String>) {
 
     with(CameraClass()) {
-
         run()
         end()
     }
@@ -44,129 +57,35 @@ fun main(args: Array<String>) {
 
 private class CameraClass {
 
-    val window: GlfwWindow
+    val window = initWindow("Camera Class")
 
     val program: ProgramA
 
     val vbo = intBufferBig(1)
     val vao = intBufferBig(1)
 
-    val vertices = floatBufferOf(
-            -0.5f, -0.5f, -0.5f, 0.0f, 0.0f,
-            +0.5f, -0.5f, -0.5f, 1.0f, 0.0f,
-            +0.5f, +0.5f, -0.5f, 1.0f, 1.0f,
-            +0.5f, +0.5f, -0.5f, 1.0f, 1.0f,
-            -0.5f, +0.5f, -0.5f, 0.0f, 1.0f,
-            -0.5f, -0.5f, -0.5f, 0.0f, 0.0f,
+    enum class Texture { A, B }
 
-            -0.5f, -0.5f, +0.5f, 0.0f, 0.0f,
-            +0.5f, -0.5f, +0.5f, 1.0f, 0.0f,
-            +0.5f, +0.5f, +0.5f, 1.0f, 1.0f,
-            +0.5f, +0.5f, +0.5f, 1.0f, 1.0f,
-            -0.5f, +0.5f, +0.5f, 0.0f, 1.0f,
-            -0.5f, -0.5f, +0.5f, 0.0f, 0.0f,
-
-            -0.5f, +0.5f, +0.5f, 1.0f, 0.0f,
-            -0.5f, +0.5f, -0.5f, 1.0f, 1.0f,
-            -0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
-            -0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
-            -0.5f, -0.5f, +0.5f, 0.0f, 0.0f,
-            -0.5f, +0.5f, +0.5f, 1.0f, 0.0f,
-
-            +0.5f, +0.5f, +0.5f, 1.0f, 0.0f,
-            +0.5f, +0.5f, -0.5f, 1.0f, 1.0f,
-            +0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
-            +0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
-            +0.5f, -0.5f, +0.5f, 0.0f, 0.0f,
-            +0.5f, +0.5f, +0.5f, 1.0f, 0.0f,
-
-            -0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
-            +0.5f, -0.5f, -0.5f, 1.0f, 1.0f,
-            +0.5f, -0.5f, +0.5f, 1.0f, 0.0f,
-            +0.5f, -0.5f, +0.5f, 1.0f, 0.0f,
-            -0.5f, -0.5f, +0.5f, 0.0f, 0.0f,
-            -0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
-
-            -0.5f, +0.5f, -0.5f, 0.0f, 1.0f,
-            +0.5f, +0.5f, -0.5f, 1.0f, 1.0f,
-            +0.5f, +0.5f, +0.5f, 1.0f, 0.0f,
-            +0.5f, +0.5f, +0.5f, 1.0f, 0.0f,
-            -0.5f, +0.5f, +0.5f, 0.0f, 0.0f,
-            -0.5f, +0.5f, -0.5f, 0.0f, 1.0f)
-
-    // world space positions of our cubes
-    val cubePositions = arrayOf(
-            Vec3(0.0f, 0.0f, 0.0f),
-            Vec3(2.0f, 5.0f, -15.0f),
-            Vec3(-1.5f, -2.2f, -2.5f),
-            Vec3(-3.8f, -2.0f, -12.3f),
-            Vec3(2.4f, -0.4f, -3.5f),
-            Vec3(-1.7f, 3.0f, -7.5f),
-            Vec3(1.3f, -2.0f, -2.5f),
-            Vec3(1.5f, 2.0f, -2.5f),
-            Vec3(1.5f, 0.2f, -1.5f),
-            Vec3(-1.3f, 1.0f, -1.5f))
-
-    object Texture {
-        val A = 0
-        val B = 1
-        val Max = 2
-    }
-
-    val textures = intBufferBig(Texture.Max)
-
-    val semantic.sampler.DIFFUSE_A get() = 0
-    val semantic.sampler.DIFFUSE_B get() = 1
+    val textures = intBufferBig<Texture>()
 
     // camera
-    val camera = Camera(position = Vec3(0.0f, 0.0f, 3.0f))
-    var lastX = 800.0f / 2.0
-    var lastY = 600.0 / 2.0
+    val camera = Camera(position = Vec3(0f, 0f, 3f))
+    var last = Vec2d(800, 600) / 2
 
     var firstMouse = true
 
-    var deltaTime = 0.0f    // time between current frame and last frame
-    var lastFrame = 0.0f
+    var deltaTime = 0f
+    var lastFrame = 0f
 
     init {
 
-        with(glfw) {
-
-            /*  Initialize GLFW. Most GLFW functions will not work before doing this.
-                It also setups an error callback. The default implementation will print the error message in System.err.    */
-            init()
-
-            //  Configure GLFW
-            windowHint {
-                context.version = "3.3"
-                profile = "core"
-            }
-        }
-
-        //  glfw window creation
-        window = GlfwWindow(800, 600, "Camera Class")
-
         with(window) {
+            cursorPosCallback = ::mouseCallback
+            scrollCallback = { _, yOffset -> camera.processMouseScroll(yOffset.f) }
 
-            makeContextCurrent() // Make the OpenGL context current
-
-            show()   // Make the window visible
-
-            framebufferSizeCallback = this@CameraClass::framebuffer_size_callback
-            cursorPosCallback = this@CameraClass::mouse_callback
-            scrollCallback = this@CameraClass::scroll_callback
-
-            // tell GLFW to capture our mouse
             cursor = Disabled
         }
 
-        /* This line is critical for LWJGL's interoperation with GLFW's OpenGL context, or any context that is managed
-           externally. LWJGL detects the context that is current in the current thread, creates the GLCapabilities instance
-           and makes the OpenGL bindings available for use.    */
-        GL.createCapabilities()
-
-
-        // configure global opengl state
         glEnable(GL_DEPTH_TEST)
 
 
@@ -182,7 +101,7 @@ private class CameraClass {
         glBindVertexArray(vao)
 
         glBindBuffer(GL_ARRAY_BUFFER, vbo)
-        glBufferData(GL_ARRAY_BUFFER, vertices, GL_STATIC_DRAW)
+        glBufferData(GL_ARRAY_BUFFER, verticesCube, GL_STATIC_DRAW)
 
         //  position attribute
         glVertexAttribPointer(semantic.attr.POSITION, Vec3.length, GL_FLOAT, false, Vec3.size + Vec2.size, 0)
@@ -206,12 +125,10 @@ private class CameraClass {
 
         // load image, create texture and generate mipmaps
         var image = readImage("textures/container.jpg").flipY()
-        var data = image.toByteBuffer()
-
-        glTexImage2D(GL_TEXTURE_2D, GL_RGB, image.width, image.height, GL_BGR, GL_UNSIGNED_BYTE, data)
-        glGenerateMipmap(GL_TEXTURE_2D)
-
-        data.destroy()
+        image.toBuffer().use {
+            glTexImage2D(GL_RGB, image.width, image.height, GL_BGR, GL_UNSIGNED_BYTE, it)
+            glGenerateMipmap(GL_TEXTURE_2D)
+        }
 
 
         //  texture B
@@ -225,12 +142,10 @@ private class CameraClass {
 
         // load image, create texture and generate mipmaps
         image = readImage("textures/awesomeface.png").flipY()
-        data = image.toByteBuffer()
-
-        glTexImage2D(GL_TEXTURE_2D, GL_RGB, image.width, image.height, EXTABGR.GL_ABGR_EXT, GL_UNSIGNED_BYTE, data)
-        glGenerateMipmap(GL_TEXTURE_2D)
-
-        data.destroy()
+        image.toBuffer().use {
+            glTexImage2D(GL_RGB, image.width, image.height, EXTABGR.GL_ABGR_EXT, GL_UNSIGNED_BYTE, it)
+            glGenerateMipmap(GL_TEXTURE_2D)
+        }
 
 
         /*  You can unbind the VAO afterwards so other VAO calls won't accidentally modify this VAO, but this rarely happens.
@@ -249,15 +164,14 @@ private class CameraClass {
             /*  Tell opengl for each sampler to which texture unit it belongs to (only has to be done once)
             Code passed to usingProgram() {..] is executed using the given program, which at the end gets unbound   */
             usingProgram(name) {
-                "textureA".unit = semantic.sampler.DIFFUSE_A
-                "textureB".unit = semantic.sampler.DIFFUSE_B
+                "textureA".unitE = Texture.A
+                "textureB".unitE = Texture.B
             }
         }
     }
 
     fun run() {
 
-        //  render loop
         while (window.open) {
 
             // per-frame time logic
@@ -265,17 +179,16 @@ private class CameraClass {
             deltaTime = currentFrame - lastFrame
             lastFrame = currentFrame
 
-            //  input
-            processInput(window)
+            window.processInput0()
 
             //  render
-            glClearColor(0.2f, 0.3f, 0.3f, 1.0f)
+            glClearColor(clearColor)
             glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT) // also clear the depth buffer now!
 
             //  bind textures on corresponding texture units
-            glActiveTexture(GL_TEXTURE0 + semantic.sampler.DIFFUSE_A)
+            glActiveTexture(GL_TEXTURE0 + Texture.A)
             glBindTexture(GL_TEXTURE_2D, textures[Texture.A])
-            glActiveTexture(GL_TEXTURE0 + semantic.sampler.DIFFUSE_B)
+            glActiveTexture(GL_TEXTURE0 + Texture.B)
             glBindTexture(GL_TEXTURE_2D, textures[Texture.B])
 
             usingProgram(program) {
@@ -294,17 +207,15 @@ private class CameraClass {
 
                     // calculate the model matrix for each object and pass it to shader before drawing
                     val model = Mat4() translate_ vec3
-                    val angle = 20.0f * i
-                    model.rotate_(angle.rad, 1.0f, 0.3f, 0.5f)
+                    val angle = 20f * i
+                    model.rotate_(angle.rad, 1f, 0.3f, 0.5f)
                     model to program.model
 
                     glDrawArrays(GL_TRIANGLES, 36)
                 }
             }
 
-            //  glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
-            window.swapBuffers()
-            glfw.pollEvents()
+            window.swapAndPoll()
         }
     }
 
@@ -316,18 +227,15 @@ private class CameraClass {
         glDeleteBuffers(vbo)
         glDeleteTextures(textures)
 
-        destroyBuffers(vao, vbo, textures, vertices)
+        destroyBuf(vao, vbo, textures)
 
-        window.destroy()
-        //  glfw: terminate, clearing all previously allocated GLFW resources.
-        glfw.terminate()
+        window.end()
     }
 
     /** process all input: query GLFW whether relevant keys are pressed/released this frame and react accordingly   */
-    fun processInput(window: GlfwWindow) {
+    fun GlfwWindow.processInput0() {
 
-        if (window.pressed(GLFW_KEY_ESCAPE))
-            window.close = true
+        processInput()
 
         if (window.pressed(GLFW_KEY_W)) camera.processKeyboard(Forward, deltaTime)
         if (window.pressed(GLFW_KEY_S)) camera.processKeyboard(Backward, deltaTime)
@@ -337,27 +245,17 @@ private class CameraClass {
         // TODO up/down?
     }
 
-    /** glfw: whenever the window size changed (by OS or user resize) this callback function executes   */
-    fun framebuffer_size_callback(width: Int, height: Int) {
-
-        /*  make sure the viewport matches the new window dimensions; note that width and height will be significantly
-            larger than specified on retina displays.     */
-        glViewport(0, 0, width, height)
-    }
-
     /** glfw: whenever the mouse moves, this callback is called */
-    fun mouse_callback(xpos: Double, ypos: Double) {
+    fun mouseCallback(xpos: Double, ypos: Double) {
 
         if (firstMouse) {
-            lastX = xpos
-            lastY = ypos
+            last.put(xpos, ypos)
             firstMouse = false
         }
 
-        var xoffset = xpos - lastX
-        var yoffset = lastY - ypos // reversed since y-coordinates go from bottom to top
-        lastX = xpos
-        lastY = ypos
+        var xoffset = xpos - last.x
+        var yoffset = last.y - ypos // reversed since y-coordinates go from bottom to top
+        last.put(xpos, ypos)
 
         val sensitivity = 0.1f // change this value to your liking
         xoffset *= sensitivity
@@ -365,7 +263,4 @@ private class CameraClass {
 
         camera.processMouseMovement(xoffset.f, yoffset.f)
     }
-
-    /** glfw: whenever the mouse scroll wheel scrolls, this callback is called  */
-    fun scroll_callback(xOffset: Double, yOffset: Double) = camera.processMouseScroll(yOffset.f)
 }

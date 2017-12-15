@@ -5,29 +5,26 @@ package learnOpenGL.a_gettingStarted
  */
 
 import glm_.vec3.Vec3
-import uno.glfw.GlfwWindow
-import uno.glfw.glfw
-import org.lwjgl.glfw.GLFW.GLFW_KEY_ESCAPE
-import org.lwjgl.opengl.GL
+import gln.buffer.glBindBuffer
+import gln.draw.glDrawArrays
+import gln.glClearColor
+import gln.glf.semantic
+import gln.vertexArray.glBindVertexArray
+import gln.vertexArray.glVertexAttribPointer
 import org.lwjgl.opengl.GL11.*
 import org.lwjgl.opengl.GL15.*
-import org.lwjgl.opengl.GL20.*
+import org.lwjgl.opengl.GL20.glEnableVertexAttribArray
 import org.lwjgl.opengl.GL30.glDeleteVertexArrays
 import org.lwjgl.opengl.GL30.glGenVertexArrays
-import uno.buffer.destroyBuffers
-import uno.buffer.floatBufferOf
+import uno.buffer.destroyBuf
 import uno.buffer.intBufferBig
-import uno.glf.semantic
-import uno.gln.glBindBuffer
-import uno.gln.glBindVertexArray
-import uno.gln.glDrawArrays
-import uno.gln.glVertexAttribPointer
 import uno.glsl.Program
+import uno.glsl.glDeleteProgram
+import uno.glsl.glUseProgram
 
 fun main(args: Array<String>) {
 
     with(ShadersClass()) {
-
         run()
         end()
     }
@@ -35,54 +32,23 @@ fun main(args: Array<String>) {
 
 private class ShadersClass {
 
-    val window: GlfwWindow
+    val window = initWindow("Shaders Class")
 
-    val program: Int
+    val program: ProgramA
 
     val vbo = intBufferBig(1)
     val vao = intBufferBig(1)
 
-    val vertices = floatBufferOf(
-            // positions        // colors
-            +0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f, // bottom right
-            -0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f, // bottom left
-            +0.0f, +0.5f, 0.0f, 0.0f, 0.0f, 1.0f  // top
+    val vertices = floatArrayOf(
+            // positions | colors
+            +0.5f, -0.5f, 0f, 1f, 0f, 0f, // bottom right
+            -0.5f, -0.5f, 0f, 0f, 1f, 0f, // bottom left
+            +0.0f, +0.5f, 0f, 0f, 0f, 1f  // top
     )
 
     init {
-
-        with(glfw) {
-
-            /*  Initialize GLFW. Most GLFW functions will not work before doing this.
-                It also setups an error callback. The default implementation will print the error message in System.err.    */
-            init()
-
-            //  Configure GLFW
-            windowHint {
-                context.version = "3.3"
-                profile = "core"
-            }
-        }
-
-        //  glfw window creation
-        window = GlfwWindow(800, 600, "Shaders Class")
-
-        with(window) {
-
-            makeContextCurrent() // Make the OpenGL context current
-
-            show()   // Make the window visible
-
-            framebufferSizeCallback = this@ShadersClass::framebuffer_size_callback
-        }
-
-        /* This line is critical for LWJGL's interoperation with GLFW's OpenGL context, or any context that is managed
-           externally. LWJGL detects the context that is current in the current thread, creates the GLCapabilities instance
-           and makes the OpenGL bindings available for use.    */
-        GL.createCapabilities()
-
         // build and compile our shader program, we can simply use it as int for the moment
-        program = ProgramA("shaders/a/_07", "shader").name
+        program = ProgramA("shaders/a/_07", "shader")
 
 
         //  set up vertex data (and buffer(s)) and configure vertex attributes
@@ -111,14 +77,12 @@ private class ShadersClass {
 
     fun run() {
 
-        //  render loop
         while (window.open) {
 
-            //  input
-            processInput(window)
+            window.processInput()
 
             //  render
-            glClearColor(0.2f, 0.3f, 0.3f, 1.0f)
+            glClearColor(clearColor)
             glClear(GL_COLOR_BUFFER_BIT)
 
             // render the triangle
@@ -127,8 +91,7 @@ private class ShadersClass {
             glDrawArrays(GL_TRIANGLES, 3)
 
             //  glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
-            window.swapBuffers()
-            glfw.pollEvents()
+            window.swapAndPoll()
         }
     }
 
@@ -139,25 +102,8 @@ private class ShadersClass {
         glDeleteVertexArrays(vao)
         glDeleteBuffers(vbo)
 
-        destroyBuffers(vao, vbo, vertices)
+        destroyBuf(vao, vbo)
 
-        window.destroy()
-        //  glfw: terminate, clearing all previously allocated GLFW resources.
-        glfw.terminate()
-    }
-
-    /** process all input: query GLFW whether relevant keys are pressed/released this frame and react accordingly   */
-    fun processInput(window: GlfwWindow) {
-
-        if (window.pressed(GLFW_KEY_ESCAPE))
-            window.close = true
-    }
-
-    /** glfw: whenever the window size changed (by OS or user resize) this callback function executes   */
-    fun framebuffer_size_callback(width: Int, height: Int) {
-
-        /*  make sure the viewport matches the new window dimensions; note that width and height will be significantly
-            larger than specified on retina displays.     */
-        glViewport(0, 0, width, height)
+        window.end()
     }
 }

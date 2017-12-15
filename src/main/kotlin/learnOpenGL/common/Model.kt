@@ -16,7 +16,7 @@ class Model(path: String) {
     init {
         // Read file via ASSIMP
         // TODO i and check class if needed
-        val scene = Importer().readFile(this::class.java, path, Triangulate.i or FlipUVs.i or CalcTangentSpace.i)
+        val scene = Importer().readFile(path, Triangulate.i or FlipUVs.i or CalcTangentSpace.i)
         // Check for errors
         if (scene == null) // if is Not Zero
 //        if(!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) // if is Not Zero
@@ -28,14 +28,14 @@ class Model(path: String) {
 //        this->directory = path.substr(0, path.find_last_of('/'));
 //
 //        // Process ASSIMP's root node recursively
-        processNode(scene.mRootNode, scene)
+        processNode(scene.rootNode, scene)
     }
 
     /** Processes a node in a recursive fashion. Processes each individual mesh located at the node and repeats this
      * process on its children nodes (if any).  */
     fun processNode(node: AiNode, scene: AiScene) {
         // Process each mesh located at the current node
-        scene.mMeshes.forEach {
+        scene.meshes.forEach {
             // The node object only contains indices to index the actual objects in the scene.
             // The scene contains all the data, node is just to keep stuff organized (like relations between nodes).
             meshes += Mesh(it, scene)

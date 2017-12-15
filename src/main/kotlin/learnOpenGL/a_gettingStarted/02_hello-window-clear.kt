@@ -4,16 +4,18 @@ package learnOpenGL.a_gettingStarted
  * Created by GBarbieri on 24.04.2017.
  */
 
-import uno.glfw.GlfwWindow
-import uno.glfw.glfw
+import glm_.vec4.Vec4
+import gln.glClearColor
+import gln.glViewport
 import org.lwjgl.glfw.GLFW.GLFW_KEY_ESCAPE
 import org.lwjgl.opengl.GL
 import org.lwjgl.opengl.GL11.*
+import uno.glfw.GlfwWindow
+import uno.glfw.glfw
 
 fun main(args: Array<String>) {
 
     with(HelloWindowClear()) {
-
         run()
         end()
     }
@@ -21,80 +23,55 @@ fun main(args: Array<String>) {
 
 private class HelloWindowClear {
 
-    val window: GlfwWindow
-
-    init {
-
-        with(glfw) {
-
-            /*  Initialize GLFW. Most GLFW functions will not work before doing this.
-                It also setups an error callback. The default implementation will print the error message in System.err.    */
-            init()
-
-            //  Configure GLFW
-            windowHint {
-                context.version = "3.3"
-                profile = "core"
-            }
-        }
-
-        //  glfw window creation
-        window = GlfwWindow(800, 600, "Hello Window Clear")
-
-        with(window) {
-
-            makeContextCurrent() // Make the OpenGL context current
-
-            show()   // Make the window visible
-
-            framebufferSizeCallback = this@HelloWindowClear::framebuffer_size_callback
-        }
-
-        /* This line is critical for LWJGL's interoperation with GLFW's OpenGL context, or any context that is managed
-           externally. LWJGL detects the context that is current in the current thread, creates the GLCapabilities
-           instance and makes the OpenGL bindings available for use.    */
-        GL.createCapabilities()
-    }
+    val window = initWindow("Hello Window Clear")
 
     fun run() {
-
         //  render loop
         while (window.open) {
-
             //  input
-            processInput(window)
-
+            window.processInput()
             //  render
-            glClearColor(0.2f, 0.3f, 0.3f, 1.0f)
+            glClearColor(clearColor)
             glClear(GL_COLOR_BUFFER_BIT)
-
             //  glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
-            window.swapBuffers()
-            glfw.pollEvents()
+            window.swapAndPoll()
         }
     }
 
-    fun end() {
-
-        window.destroy()
-        //  glfw: terminate, clearing all previously allocated GLFW resources.
-        glfw.terminate()
-    }
+    fun end() = window.end()
 
     /** process all input: query GLFW whether relevant keys are pressed/released this frame and react accordingly   */
-    private fun processInput(window: GlfwWindow) {
-
-        if (window.pressed(GLFW_KEY_ESCAPE))
-            window.close = true
-    }
-
-    /** glfw: whenever the window size changed (by OS or user resize) this callback function executes   */
-    private fun framebuffer_size_callback(width: Int, height: Int) {
-
-        /*  make sure the viewport matches the new window dimensions; note that width and height will be
-            significantly larger than specified on retina displays.     */
-        glViewport(0, 0, width, height)
+    private fun GlfwWindow.processInput() {
+        if (pressed(GLFW_KEY_ESCAPE)) close = true
     }
 }
 
+fun initWindow(title: String): GlfwWindow {
+    with(glfw) {
+        init()
+        windowHint {
+            context.version = "3.3"
+            profile = "core"
+        }
+    }
+    return GlfwWindow(800, 600, title).apply {
+        makeContextCurrent()
+        show()
+        framebufferSizeCallback = { width, height -> glViewport(width, height) }
+    }.also {
+        GL.createCapabilities()
+    }
+}
 
+val clearColor = Vec4(0.2f, 0.3f, 0.3f, 1f)
+
+
+fun GlfwWindow.end() {
+    destroy()
+    glfw.terminate()
+}
+
+fun GlfwWindow.swapAndPoll() {
+    swapBuffers()
+    glfw.pollEvents()
+}
