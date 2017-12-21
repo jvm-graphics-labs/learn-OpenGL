@@ -4,9 +4,9 @@ import assimp.AiMaterial
 import assimp.AiMesh
 import assimp.AiScene
 import assimp.AiTexture
-import gli_.gli
 import glm_.set
 import gln.draw.glDrawElements
+import gln.get
 import gln.glf.glf
 import gln.glf.semantic
 import gln.texture.glBindTexture
@@ -34,13 +34,9 @@ class Mesh(assimpMesh: AiMesh, scene: AiScene) {
 
     val vao = intBufferBig(1)
 
-    object Buffer {
-        val VERTEX = 0
-        val ELEMENT = 1
-        val MAX = 2
-    }
+    enum class Buffer { Vertex, Element }
 
-    val buffers = intBufferBig(Buffer.MAX)
+    val buffers = intBufferBig<Buffer>()
 
     val indexCount: Int
 
@@ -55,7 +51,7 @@ class Mesh(assimpMesh: AiMesh, scene: AiScene) {
 
         glBindVertexArray(vao)
         // Load data into vertex buffers
-        glBindBuffer(GL_ARRAY_BUFFER, buffers[Buffer.VERTEX])
+        glBindBuffer(GL_ARRAY_BUFFER, buffers[Buffer.Vertex])
         val vertexSize = 3 + 3 + 2
         val vertices = floatBufferBig(vertexSize * assimpMesh.numVertices)
         assimpMesh.vertices.forEachIndexed { i, v ->
@@ -70,7 +66,7 @@ class Mesh(assimpMesh: AiMesh, scene: AiScene) {
         }
         glBufferData(GL_ARRAY_BUFFER, vertices, GL_STATIC_DRAW)
 
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, buffers[Buffer.ELEMENT])
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, buffers[Buffer.Element])
         indexCount = assimpMesh.numFaces * 3
         val indices = intBufferBig(indexCount)
         repeat(indexCount) { indices[it] = assimpMesh.faces[it / 3][it % 3] }

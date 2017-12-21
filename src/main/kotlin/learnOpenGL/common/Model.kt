@@ -1,7 +1,9 @@
 package learnOpenGL.common
 
-import assimp.*
-import assimp.AiPostProcessSteps.*
+import assimp.AiNode
+import assimp.AiScene
+import assimp.Importer
+import uno.kotlin.uri
 
 /**
  * Created by GBarbieri on 02.05.2017.
@@ -16,18 +18,18 @@ class Model(path: String) {
     init {
         // Read file via ASSIMP
         // TODO i and check class if needed
-        val scene = Importer().readFile(path, Triangulate.i or FlipUVs.i or CalcTangentSpace.i)
+//        val scene = Importer().readFile(path.uri, Triangulate.i or FlipUVs.i or CalcTangentSpace.i)
+        val scene = Importer().readFile(path.uri, 0)
         // Check for errors
         if (scene == null) // if is Not Zero
 //        if(!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) // if is Not Zero
         {
-//            cout << "ERROR::ASSIMP:: " << importer.GetErrorString() << endl;
             throw Error("")
         }
 //        // Retrieve the directory path of the filepath
 //        this->directory = path.substr(0, path.find_last_of('/'));
-//
-//        // Process ASSIMP's root node recursively
+
+        // Process ASSIMP's root node recursively
         processNode(scene.rootNode, scene)
     }
 

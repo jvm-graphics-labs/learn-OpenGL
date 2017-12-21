@@ -1,9 +1,11 @@
 package learnOpenGL.common
 
+import glm_.f
 import glm_.func.cos
 import glm_.func.rad
 import glm_.func.sin
 import glm_.glm
+import glm_.vec2.Vec2d
 import glm_.vec3.Vec3
 import learnOpenGL.common.Camera.Movement.*
 
@@ -56,17 +58,19 @@ class Camera(
     }
 
     /** Processes input received from a mouse input system. Expects the offset value in both the x and y direction. */
-    fun processMouseMovement(xOffset: Float, yOffset: Float, constrainPitch: Boolean = true) {
+    infix fun processMouseMovement(offset: Vec2d) = processMouseMovement(offset, true)
 
-        val x = xOffset * mouseSensitivity
-        val y = yOffset * mouseSensitivity
+    fun processMouseMovement(offset: Vec2d, constrainPitch: Boolean = true) {
 
-        yaw += x
-        pitch += y
+        val x = offset.x * mouseSensitivity
+        val y = offset.y * mouseSensitivity
+
+        yaw += x.f
+        pitch += y.f
 
         // Make sure that when pitch is out of bounds, screen doesn't get flipped
         if (constrainPitch)
-            pitch = glm.clamp(pitch, -89.0f, 89.0f)
+            pitch = glm.clamp(pitch, -89f, 89f)
 
         // Update Front, Right and Up Vectors using the updated Eular angles
         updateCameraVectors()
@@ -75,10 +79,10 @@ class Camera(
     /** Processes input received from a mouse scroll-wheel event. Only requires input on the vertical wheel-axis    */
     fun processMouseScroll(yOffset: Float) {
 
-        if (zoom in 1.0f..45.0f)
+        if (zoom in 1f..45f)
             zoom -= yOffset
 
-        zoom = glm.clamp(zoom, 1.0f, 45.0f)
+        zoom = glm.clamp(zoom, 1f, 45f)
     }
 
     /** Calculates the front vector from the Camera's (updated) Eular Angles    */

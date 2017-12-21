@@ -4,12 +4,13 @@ apply plugin: 'kotlin'
 
 buildscript {
 
-    ext.kotlinVersion = '1.2.0'
+    ext.kotlinVersion = '1.2.20-eap-11'
 
     repositories {
         mavenCentral()
         jcenter()
         maven { url "https://dl.bintray.com/kotlin/kotlin-dev" }
+        maven { url "https://dl.bintray.com/kotlin/kotlin-eap" }
         maven { url "https://oss.sonatype.org/content/repositories/snapshots/" }
     }
 
@@ -23,7 +24,8 @@ dependencies {
 
     compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion"
 
-    compile 'com.github.kotlin-graphics:assimp:e50cd0946c9d5b3c066ee112609bd3f5c9c5d480'
+    compile 'com.github.kotlin-graphics:assimp:1be72df603febc1b6b22dd5c7085af12aa1a832b'
+    compile 'com.github.kotlin-graphics:imgui:e95c70b926890359d5419f887f0a667389548557'
 
     switch ( OperatingSystem.current() ) {
         case OperatingSystem.WINDOWS:
@@ -54,7 +56,7 @@ dependencies {
 repositories {
     mavenCentral()
     maven { url "https://dl.bintray.com/kotlin/kotlin-dev" }
+    maven { url "https://dl.bintray.com/kotlin/kotlin-eap" }
     maven { url "https://oss.sonatype.org/content/repositories/snapshots/" }
-    maven { url "https://dl.bintray.com/kotlin-graphics/assimp" }
     maven { url 'https://jitpack.io' }
 }

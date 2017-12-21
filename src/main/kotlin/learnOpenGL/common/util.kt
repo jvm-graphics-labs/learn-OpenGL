@@ -4,8 +4,8 @@ import gli_.gl
 import gli_.gli
 import gln.texture.glTexImage2D
 import org.lwjgl.opengl.GL11
+import org.lwjgl.opengl.GL13.GL_TEXTURE_CUBE_MAP_POSITIVE_X
 import org.lwjgl.opengl.GL30
-import uno.buffer.bufferOf
 import uno.buffer.toBuf
 import uno.glfw.GlfwWindow
 import uno.kotlin.uri
@@ -61,7 +61,7 @@ fun loadTexture(path: String): Int {
     val format = gli.gl.translate(texture.format, texture.swizzles)
 
     GL11.glBindTexture(GL11.GL_TEXTURE_2D, textureID)
-    for(i in 0 until texture.levels()) {
+    for (i in 0 until texture.levels()) {
         val extend = texture.extent(i)
         glTexImage2D(i, format.internal, extend.x, extend.y, format.external, format.type, texture.data(0, 0, i))
     }
@@ -73,6 +73,35 @@ fun loadTexture(path: String): Int {
     GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MAG_FILTER, GL11.GL_LINEAR)
 
     texture.dispose()
+
+    return textureID
+}
+
+
+fun loadCubemap(path: String, extension: String): Int {
+
+    val textureID = GL11.glGenTextures()
+    GL11.glBindTexture(GL11.GL_TEXTURE_2D, textureID)
+
+    listOf("right", "left", "top", "bottom", "back", "front").forEachIndexed { i, it ->
+
+        val texture = gli.load("$path/$it.$extension".uri)
+        gli.gl.profile = gl.Profile.GL33
+        val format = gli.gl.translate(texture.format, texture.swizzles)
+
+        val extend = texture.extent()
+        GL11.glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, format.internal.i,
+                extend.x, extend.y, 0, format.external.i, format.type.i, texture.data())
+
+        GL30.glGenerateMipmap(GL11.GL_TEXTURE_2D)
+
+        GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_WRAP_S, GL11.GL_REPEAT)
+        GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_WRAP_T, GL11.GL_REPEAT)
+        GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, GL11.GL_LINEAR_MIPMAP_LINEAR)
+        GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MAG_FILTER, GL11.GL_LINEAR)
+
+        texture.dispose()
+    }
 
     return textureID
 }
