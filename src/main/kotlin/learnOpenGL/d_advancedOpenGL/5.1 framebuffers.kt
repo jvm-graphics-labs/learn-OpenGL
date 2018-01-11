@@ -11,6 +11,7 @@ import gln.draw.glDrawArrays
 import gln.framebuffer.glBindFramebuffer
 import gln.framebuffer.glFramebufferRenderbuffer
 import gln.get
+import gln.glClearColor
 import gln.glf.glf
 import gln.glf.semantic
 import gln.program.usingProgram
@@ -26,6 +27,7 @@ import learnOpenGL.a_gettingStarted.end
 import learnOpenGL.a_gettingStarted.swapAndPoll
 import learnOpenGL.a_gettingStarted.windowSize
 import learnOpenGL.b_lighting.camera
+import learnOpenGL.b_lighting.clearColor0
 import learnOpenGL.b_lighting.initWindow0
 import learnOpenGL.b_lighting.processFrame
 import learnOpenGL.common.loadTexture
@@ -41,6 +43,7 @@ import uno.glsl.Program
 import uno.glsl.glDeletePrograms
 import uno.glsl.glUseProgram
 import uno.glsl.usingProgram
+import java.awt.Color
 
 
 fun main(args: Array<String>) {
@@ -162,7 +165,7 @@ private class Framebuffers {
             glEnable(GL_DEPTH_TEST) // enable depth testing (is disabled for rendering screen-space quad)
 
             // make sure we clear the framebuffer's content
-            glClearColor(0.1f, 0.1f, 0.1f, 1.0f)
+            glClearColor(clearColor0)
             glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
 
             glUseProgram(programRender)
@@ -193,7 +196,7 @@ private class Framebuffers {
             glBindFramebuffer(GL_FRAMEBUFFER, 0)
             glDisable(GL_DEPTH_TEST) // disable depth test so screen-space quad isn't discarded due to depth test.
             // clear all relevant buffers
-            glClearColor(1f, 1f, 1f, 1f) // not really necessary actually, since we won't be able to see behind the quad anyways
+            glClearColor(Color.white) // not really necessary actually, since we won't be able to see behind the quad anyways
             glClear(GL_COLOR_BUFFER_BIT)
 
             glUseProgram(programSplash)
